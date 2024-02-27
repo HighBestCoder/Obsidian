@@ -27,6 +27,31 @@ Make sure you are in the directory you want the tool installed to before doing t
 vcpkg install llvm opencv4[world] --triplet x64-windows-static --recurse
 ```
 
+输出信息
+```
+The package llvm provides CMake targets:
+
+    find_package(LLVM CONFIG REQUIRED)
+
+    list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+    include(HandleLLVMOptions)
+    add_definitions(${LLVM_DEFINITIONS})
+
+    target_include_directories(main PRIVATE ${LLVM_INCLUDE_DIRS})
+
+    # Find the libraries that correspond to the LLVM components that we wish to use
+    llvm_map_components_to_libnames(llvm_libs Support Core IRReader ...)
+
+    # Link against LLVM libraries
+    target_link_libraries(main PRIVATE ${llvm_libs})
+
+If you do not install the meta-port *opencv*, the package opencv4 is compatible with CMake
+if you set the OpenCV_DIR *before* the find_package call
+
+    set(OpenCV_DIR "${VCPKG_INSTALLED_DIR}/x64-windows-static/share/opencv4")
+    find_package(OpenCV REQUIRED)
+```
+
 然后再安装
 
 ```

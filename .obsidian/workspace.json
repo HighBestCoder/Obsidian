@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "LeetCode/后缀数组.md",
+                "file": "RUST/Rust + OpenCV.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "LeetCode/后缀数组.md",
+                "file": "RUST/Rust + OpenCV.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -112,10 +112,19 @@
       "markdown-importer:Open format converter": false
     }
   },
-  "active": "df2b7c70a0444859",
+  "active": "a40012ef3d7c4499",
   "lastOpenFiles": [
-    "LeetCode/双指针.md",
+    "常用Kusto/SideCar文件复制.kql",
+    "常用Kusto",
+    "MySQL-OnCall/OneNote密码.md",
+    "Pasted image 20240226084304.png",
+    "Pasted image 20240226084249.png",
+    "MySQL-OnCall/yoj.psm1 - 快捷方式.lnk",
+    "MySQL-OnCall/StartSQLAzureConsole.ps1 - 快捷方式.lnk",
+    "MySQL-OnCall/StartSQLAzureConsole.ps1",
+    "MySQL-OnCall/yoj.psm1",
     "LeetCode/后缀数组.md",
+    "LeetCode/双指针.md",
     "小学奥数/要背.md",
     "小学奥数/5. 简单的搭配.md",
     "Untitled.canvas",
@@ -128,8 +137,6 @@
     "LeetCode/image-20200303163733330.png",
     "LeetCode/image-20200303163354663.png",
     "LeetCode/image-20200303162904427.png",
-    "LeetCode/image-20200303162656492.png",
-    "LeetCode/image-20200303161545593.png",
     "Untitled.md",
     "小学奥数/4. 数图形.md",
     "小学奥数/1. 找规律.md",
