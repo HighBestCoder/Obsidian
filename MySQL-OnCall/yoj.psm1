@@ -348,6 +348,318 @@ function YOJ-GenerateDirectoryPathsAndCommand {
    }
 }
 
+<#
+.SYNOPSIS
+Generates a URL for remote access to a VM based on server information.
+
+.DESCRIPTION
+The YOJ-FlexVMJITUrl function generates a URL for remote access to a VM. It uses the server name to get the server information using the Get-MySqlServer2 function. Then it constructs a URL with the server information and returns it.
+
+.PARAMETER ServerName
+The name of the server for which to generate the URL.
+
+.PARAMETER IcMId
+The ID for the IcM item. If provided, it will be included in the URL.
+
+.EXAMPLE
+PS C:\Users\yoj\SqlAzureConsole> $server = "ne-trftrain-mysql-cloud-shell-test2-infra-838"
+PS C:\Users\yoj\SqlAzureConsole> $url = YOJ-FlexVMJITUrl -ServerName $server -IcMId "12345"
+PS C:\Users\yoj\SqlAzureConsole> Write-Output $url
+
+This example generates a URL for the specified server and then prints it to the console.
+
+.NOTES
+This function relies on the Get-MySqlServer2 function to get server information.
+#>
+function YOJ-FlexVMJITUrl {
+   param (
+       [Parameter(Mandatory=$true)]
+       [string]$ServerName,
+
+       [Parameter(Mandatory=$false)]
+       [string]$IcMId
+   )
+
+   # Call your function to get server info
+   $info = Get-MySqlServer2 -ServerName $ServerName
+
+   # Prepare the parameters for the URL
+   $ResourceType = "Remote%20Access%20-%20IAAS"
+   $Region = $info.Location
+   $SubscriptionId = $info.MsftSubscriptionId
+   $ResourceGroup = $info.MsftResourceGroupName
+   $ResourceName = $info.VirtualMachineName
+
+   # Construct the URL
+   $url = "https://jitaccess.security.core.windows.net/WorkFlowTempAccess.aspx?View=Submit&ResourceType=$ResourceType&Region=$Region&SubscriptionId=$SubscriptionId&ResourceGroup=$ResourceGroup&ResourceName=$ResourceName"
+
+   # If IcMId is provided, add it to the URL
+   if ($IcMId) {
+       $url += "&MainContent_WorkItemID_TextBox=$IcMId"
+   }
+
+   return $url
+}
+
+<#
+.SYNOPSIS
+Opens port 22 (SSH) for a server based on server information.
+
+.DESCRIPTION
+The YOJ-FlexServerOpen22ForSSH function opens port 22 (SSH) for a server. It uses the server name to get the server information using the Get-MySqlServer2 function. Then it constructs a model for the firewall rule and sends a request to add or update the security rule.
+
+.PARAMETER ServerName
+The name of the server for which to open port 22.
+
+.EXAMPLE
+PS C:\Users\yoj\SqlAzureConsole> YOJ-FlexServerOpen22ForSSH -ServerName "ne-trftrain-mysql-cloud-shell-test2-infra-838"
+
+This example opens port 22 for the specified server.
+
+.NOTES
+This function relies on the Get-MySqlServer2 and Invoke-MySqlControlArbitraryApi functions to get server information and send the request.
+#>
+function YOJ-FlexServerOpen22ForSSH {
+   param (
+       [Parameter(Mandatory=$true)]
+       [string]$ServerName
+   )
+
+   # Get server info
+   $info = Get-MySqlServer2 -ServerName $ServerName
+
+   # Prepare the model for the firewall rule
+   $model = @{
+      Owner                      = "Microsoft"
+      FirewallRuleName           = "Port_22"
+      Description                = "EnablePort22"
+      Priority                   = 710
+      Access                     = "Allow"
+      Direction                  = "Inbound"
+      SqlTag                     = "CorpNetSaw"
+      Protocol                   = "*"
+      SourcePortRange            = "*"
+      DestinationPortRange       = "22"
+      DestinationAddressPrefix   = "*"
+   }
+
+   # Convert the model to JSON
+   $body = ConvertTo-Json $model
+
+   # Prepare the URL for the request
+   $orcas_instance_id = $info.OrcasInstanceId
+
+   # Send the request to add or update the security rule
+   $response = Invoke-MySqlControlArbitraryApi -Method Put -Url "FirewallRule/AddOrUpdateSecurityRule?orcasInstanceId=$orcas_instance_id&nsgType=Microsoft" -CabId 123123  -Body $body
+
+   # Print the response
+   echo $response
+}
+
+<#
+.SYNOPSIS
+Generates a URL for Just-In-Time (JIT) access to a server.
+
+.DESCRIPTION
+The YOJ-SingleServerJITUrl function generates a URL for Just-In-Time (JIT) access to a server. It uses the server name to get the server information using the Get-ElasticServerInstance2 function. Then it constructs the URL based on the server information and the provided subscription ID.
+
+.PARAMETER ServerName
+The name of the server for which to generate the JIT access URL.
+
+.PARAMETER SubscriptionId
+The subscription ID to use in the JIT access URL.
+
+.EXAMPLE
+PS C:\Users\yoj\SqlAzureConsole> YOJ-SingleServerJITUrl -ServerName "ne-prd-spark-mysql-01-cloud-shell-deleteme-dryrun3" -SubscriptionId "9697d26c-2d7f-4f62-8743-71c824a941d4"
+
+This example generates a JIT access URL for the specified server and subscription ID.
+
+.NOTES
+This function relies on the Get-ElasticServerInstance2 function to get server information.
+#>
+function YOJ-SingleServerJITUrl {
+   param (
+       [Parameter(Mandatory=$true)]
+       [string]$ServerName,
+       [Parameter(Mandatory=$true)]
+       [string]$SubscriptionId
+   )
+
+   $regions = @(
+    "australiacentral",
+    "australiacentral2",
+    "australiaeast",
+    "australiasoutheast",
+    "austriaeast",
+    "belgiumcentral",
+    "brazilsouth",
+    "brazilsoutheast",
+    "canadacentral",
+    "canadaeast",
+    "centralindia",
+    "centralus",
+    "centraluseuap",
+    "chilecentral",
+    "denmarkeast",
+    "eastasia",
+    "eastus",
+    "eastus2",
+    "eastus2euap",
+    "eastusslv",
+    "eastusstg",
+    "francecentral",
+    "francesouth",
+    "germanynorth",
+    "germanywestcentral",
+    "indiasouthcentral",
+    "indonesiacentral",
+    "israelcentral",
+    "israelnorthwest",
+    "italynorth",
+    "japaneast",
+    "japanwest",
+    "jioindiacentral",
+    "jioindiawest",
+    "koreacentral",
+    "koreasouth",
+    "malaysiasouth",
+    "malaysiawest",
+    "mexicocentral",
+    "newzealandnorth",
+    "northcentralus",
+    "northeurope",
+    "norwayeast",
+    "norwaywest",
+    "polandcentral",
+    "qatarcentral",
+    "southafricanorth",
+    "southafricawest",
+    "southcentralus",
+    "southcentralusstg",
+    "southeastasia",
+    "southeastus",
+    "southindia",
+    "spaincentral",
+    "swedencentral",
+    "swedensouth",
+    "switzerlandnorth",
+    "switzerlandwest",
+    "taiwannorth",
+    "taiwannorthwest",
+    "uaecentral",
+    "uaenorth",
+    "uknorth",
+    "uksouth",
+    "uksouth2",
+    "ukwest",
+    "westcentralus",
+    "westeurope",
+    "westindia",
+    "westus",
+    "westus.validation",
+    "westus2",
+    "westus3"
+   )
+
+    # Get $info
+    $info = Get-ElasticServerInstance2 -ServerName $ServerName -IncludeFabricProperties
+
+    # Split $info.TenantRingName by '.'
+    $trnParts = $info.TenantRingName.Split(".")
+
+    # Generate ResourceGroup
+    $ResourceGroup = "wasd-prod-$($trnParts[1])-$($trnParts[0])"
+
+    # Generate Location
+    $Location = $regions | Where-Object { $info.TenantRingName.Contains($_) } | Sort-Object Length -Descending | Select-Object -First 1
+
+    # Extract InstanceIds
+    $InstanceIds = $info.FabricNodeName.Split("_")[-1]
+
+    # Generate URL
+    $url = "https://jitaccess.security.core.windows.net/WorkFlowTempAccess.aspx?View=Submit&ResourceType=Virtual%20machine%20scale%20set&Region=$Location&SubscriptionId=$SubscriptionId&ResourceGroup=$ResourceGroup&ResourceName=DB&InstanceIds=$InstanceIds&AccessLevel=Administrator"
+
+    return $url
+}
+
+<#
+.SYNOPSIS
+    This function generates a URL for the Just-In-Time (JIT) access portal.
+
+.DESCRIPTION
+    The YOJ-FlexServerJITPortal function generates a URL for the JIT access portal based on a server name. 
+    It first uses the Get-MySqlServer2 function to get information about the server. 
+    It then extracts the MsftSubscriptionId from this information and uses it to generate a URL.
+
+.PARAMETER ServerName
+    The name of the server for which to generate a JIT access portal URL.
+
+.EXAMPLE
+    YOJ-FlexServerJITPortal -ServerName "MyServerName"
+
+    This command generates a JIT access portal URL for the server named "MyServerName".
+
+.OUTPUTS
+    String. The function outputs a URL.
+
+.NOTES
+    The generated URL includes the resource type (Subscription), the subscription ID (MsftSubscriptionId), 
+    and the access level (Owner).
+#>
+function YOJ-FlexServerJITPortal {
+   [CmdletBinding()]
+   param(
+       [Parameter(Mandatory=$true, HelpMessage="The name of the server for which to generate a JIT access portal URL.")]
+       [string]$ServerName
+   )
+
+   # Get $info
+   $info = Get-MySqlServer2 -ServerName $ServerName
+
+   # Extract MsftSubscriptionId
+   $MSFTSubId = $info.MsftSubscriptionId
+
+   # Generate URL
+   $url = "https://jitaccess.security.core.windows.net/WorkFlowTempAccess.aspx?View=Submit&ResourceType=Subscription&SubscriptionId=$MSFTSubId&AccessLevel=Owner"
+
+   return $url
+}
+
+<#
+.SYNOPSIS
+    This function retrieves information about a SQL Server and generates a SAS token.
+
+.DESCRIPTION
+    The YOJ-FlexServerSASToken function uses the Get-MySqlServer and Get-MySqlServerSasToken functions 
+    to retrieve information about a SQL Server and generate a SAS token with specific permissions. 
+
+.PARAMETER ServerName
+    The name of the SQL Server for which to retrieve information and generate a SAS token.
+
+.EXAMPLE
+    YOJ-FlexServerSASToken -ServerName "your_server_name"
+    This command retrieves information about the SQL Server named "your_server_name" and generates a SAS token.
+
+.NOTES
+    This function depends on the Get-MySqlServer and Get-MySqlServerSasToken functions. 
+    Make sure these functions or cmdlets are available in your environment.
+#>
+
+function YOJ-FlexServerSASToken {
+   param(
+       [Parameter(Mandatory=$true)]
+       [string]$ServerName
+   )
+
+   $info = Get-MySqlServer -ServerName $ServerName
+   $info | Get-MySqlServerSasToken -StorageKind PremiumFileShare -Minutes 600 -Permissions rwdl
+}
+
+Export-ModuleMember -Function YOJ-FlexServerSASToken
+Export-ModuleMember -Function YOJ-FlexServerJITPortal
+Export-ModuleMember -Function YOJ-SingleServerJITUrl
+Export-ModuleMember -Function YOJ-FlexServerOpen22ForSSH
+Export-ModuleMember -Function YOJ-FlexVMJITUrl
 Export-ModuleMember -Function YOJ-GenerateDirectoryPathsAndCommand
 Export-ModuleMember -Function YOJ-GetJitMySqlConnectionStringSingleServer
 Export-ModuleMember -Function YOJ-SingleServerPITRDryRun
