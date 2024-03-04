@@ -13,36 +13,13 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "RUST/Rust + OpenCV.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "4cec05a9117672de",
-            "type": "leaf",
-            "state": {
-              "type": "release-notes",
-              "state": {
-                "currentVersion": "1.5.8"
-              }
-            }
-          },
-          {
-            "id": "72af64fde5447d4b",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
                 "file": "TODO.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -135,47 +112,55 @@
       "markdown-importer:Open format converter": false
     }
   },
-  "active": "72af64fde5447d4b",
+  "active": "df2b7c70a0444859",
   "lastOpenFiles": [
+    "RUST/Rust + OpenCV.md",
+    "教练员手册/语音模板.md",
+    "教练员手册/语文第二课.找春天.C",
+    "教练员手册/计算部分.md",
+    "教练员手册/第二章.西游记.C",
+    "教练员手册/第一章.西游记.C",
+    "教练员手册/数学易错点.md",
+    "教练员手册/gen.cc",
+    "教练员手册",
+    "小学奥数/故事.md",
+    "小学奥数/9. 等量代换.md",
+    "小学奥数/8. 应用题.md",
+    "小学奥数/7. 等量代换.md",
+    "小学奥数/6. 应用题.md",
+    "小学奥数/12. 智巧趣题.md",
+    "小学奥数/11. 应用题2.md",
+    "小学奥数/10. 妙用余数.md",
+    "奖励/规则.md",
+    "奖励",
     "TODO.md",
-    "TODO",
+    "OpenCV/Mac编译OpenCV.md",
+    "OpenCV",
+    "LeetCode/Pasted image 20231129211705.png",
+    "LeetCode/Pasted image 20231123145601.png",
+    "LeetCode/Pasted image 20231123144741.png",
+    "LeetCode/Pasted image 20231123144558.png",
+    "LeetCode/Pasted image 20231123143517.png",
+    "LeetCode/Pasted image 20231123142315.png",
+    "LeetCode/Pasted image 20231123141436.png",
+    "LeetCode/Pasted image 20231123141031.png",
+    "LeetCode/Pasted image 20231122185643.png",
     "常用Kusto/SideCar文件复制.kql",
     "常用Kusto",
     "MySQL-OnCall/OneNote密码.md",
     "Pasted image 20240226084304.png",
-    "Pasted image 20240226084249.png",
     "MySQL-OnCall/yoj.psm1 - 快捷方式.lnk",
-    "MySQL-OnCall/StartSQLAzureConsole.ps1 - 快捷方式.lnk",
-    "MySQL-OnCall/StartSQLAzureConsole.ps1",
-    "MySQL-OnCall/yoj.psm1",
     "LeetCode/后缀数组.md",
     "LeetCode/双指针.md",
     "小学奥数/要背.md",
     "小学奥数/5. 简单的搭配.md",
     "Untitled.canvas",
     "小学奥数/3. 合理安排.md",
-    "LeetCode/image-20200409224507770.png",
-    "LeetCode/image-20200304172209649.png",
-    "LeetCode/image-20200304171839010.png",
-    "LeetCode/image-20200303164612002.png",
-    "LeetCode/image-20200303163758336.png",
-    "LeetCode/image-20200303163733330.png",
-    "LeetCode/image-20200303163354663.png",
-    "LeetCode/image-20200303162904427.png",
+    "Untitled.md",
     "小学奥数/4. 数图形.md",
     "小学奥数/1. 找规律.md",
     "小学奥数/2. 单双数.md",
     "LeetCode/回文.md",
-    "LeetCode/两个有序数组的中位数.md",
-    "LeetCode/马拉车.md",
-    "MySQL-OnCall/16T写满.md",
-    "语文/小学语文.md",
-    "MySQL-OnCall/内存利用率.md",
-    "Untitled 1.canvas",
-    "小学奥数",
-    "MySQL-OnCall/AFEC.md",
-    "MySQL-OnCall/MERU修改状态.md",
-    "语文/小学英语.md",
-    "LeetCode/树型DP.md"
+    "Untitled 1.canvas"
   ]
 }

@@ -321,7 +321,7 @@ function YOJ-GenerateDirectoryPathsAndCommand {
        $MySQLCode = $MySQLCode -replace "\.lk$", ""
 
        # Generate the directory paths
-       $path1 = "S:\WFRoot\_App\Worker.PAL.MySQL_$AppInfo\work\Sandbox\work"
+       $path1 = "S:\WFRoot\_App\$AppInfo\work\Sandbox\work"
        $path2 = "S:\WFRoot\_App\__shared\Store\Worker.PAL.MySQL\$MySQLCode\Packages\MySQL.8.0.0.0\x64\content\mysql\bin\mysql.exe"
 
        # Generate the command
@@ -481,8 +481,12 @@ function YOJ-SingleServerJITUrl {
    param (
        [Parameter(Mandatory=$true)]
        [string]$ServerName,
+
        [Parameter(Mandatory=$true)]
-       [string]$SubscriptionId
+       [string]$SubscriptionId,
+
+       [Parameter(Mandatory=$false)]
+       [string]$IcMId
    )
 
    $regions = @(
@@ -579,6 +583,11 @@ function YOJ-SingleServerJITUrl {
     # Generate URL
     $url = "https://jitaccess.security.core.windows.net/WorkFlowTempAccess.aspx?View=Submit&ResourceType=Virtual%20machine%20scale%20set&Region=$Location&SubscriptionId=$SubscriptionId&ResourceGroup=$ResourceGroup&ResourceName=DB&InstanceIds=$InstanceIds&AccessLevel=Administrator"
 
+    # If IcMId is provided, add it to the URL
+    if ($IcMId) {
+        $url += "&MainContent_WorkItemID_TextBox=$IcMId"
+    }
+
     return $url
 }
 
@@ -610,7 +619,10 @@ function YOJ-FlexServerJITPortal {
    [CmdletBinding()]
    param(
        [Parameter(Mandatory=$true, HelpMessage="The name of the server for which to generate a JIT access portal URL.")]
-       [string]$ServerName
+       [string]$ServerName,
+
+       [Parameter(Mandatory=$false)]
+       [string]$IcMId
    )
 
    # Get $info
@@ -621,6 +633,11 @@ function YOJ-FlexServerJITPortal {
 
    # Generate URL
    $url = "https://jitaccess.security.core.windows.net/WorkFlowTempAccess.aspx?View=Submit&ResourceType=Subscription&SubscriptionId=$MSFTSubId&AccessLevel=Owner"
+
+    # If IcMId is provided, add it to the URL
+    if ($IcMId) {
+        $url += "&MainContent_WorkItemID_TextBox=$IcMId"
+    }
 
    return $url
 }
