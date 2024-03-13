@@ -72,3 +72,25 @@ OPENCV_LINK_PATHS = D:\vcpkg\installed\x64-windows\lib
 ```
 
 Path中要添加`D:\vcpkg\installed\x64-windows\tools\llvm`
+
+```
+Stored binaries in 1 destinations in 19 min.
+Elapsed time to handle llvm:x64-windows: 4.1 h
+llvm:x64-windows package ABI: e825ca87c913b27d1f744e7961a292d07925e68b51836f72bbf71c3f012cc06b
+Total install time: 4.1 h
+The package llvm provides CMake targets:
+
+    find_package(LLVM CONFIG REQUIRED)
+
+    list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+    include(HandleLLVMOptions)
+    add_definitions(${LLVM_DEFINITIONS})
+
+    target_include_directories(main PRIVATE ${LLVM_INCLUDE_DIRS})
+
+    # Find the libraries that correspond to the LLVM components that we wish to use
+    llvm_map_components_to_libnames(llvm_libs Support Core IRReader ...)
+
+    # Link against LLVM libraries
+    target_link_libraries(main PRIVATE ${llvm_libs})
+```
