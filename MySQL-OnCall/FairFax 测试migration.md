@@ -6,6 +6,11 @@ East - Disabled
 Texas - Disabled
 ```
 
+# URL
+
+https://portal.azure.us/?enableMySqlSingleServerCreate=true#home
+
+ 用户名密码 ~/OneDrive/pass.db
 
 ```
 
