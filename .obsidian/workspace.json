@@ -47,7 +47,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "MySQL-OnCall/FairFax 测试migration.md",
+                "file": "MySQL-OnCall/编译Ceph.md",
                 "mode": "source",
                 "source": false
               }
@@ -120,7 +120,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "MySQL-OnCall/FairFax 测试migration.md",
+                "file": "MySQL-OnCall/编译Ceph.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -147,11 +147,15 @@
       "markdown-importer:Open format converter": false
     }
   },
-  "active": "c097106ec2039ac5",
+  "active": "a40012ef3d7c4499",
   "lastOpenFiles": [
+    "MySQL-OnCall/─┌┤ц└√╙├┬╩.md",
+    "MySQL-OnCall/编译Ceph.md",
+    "MySQL-OnCall/16T╨┤┬·.md",
+    "MySQL-OnCall/▒р╥ыCeph.md",
+    "MySQL-OnCall/FairFax 测试migration.md",
     "MySQL/建立Debug的Flex MySQL.md",
     "MySQL/ms-mysql.md",
-    "MySQL-OnCall/FairFax 测试migration.md",
     "MySQL/MySQL Partition.md",
     "Pasted image 20240308094622.png",
     "Pasted image 20240308094556.png",
@@ -189,11 +193,7 @@
     "LeetCode/马拉车.md",
     "MySQL-OnCall/16T写满.md",
     "语文/小学语文.md",
-    "MySQL-OnCall/内存利用率.md",
     "Untitled 1.canvas",
-    "小学奥数",
-    "MySQL-OnCall/AFEC.md",
-    "MySQL-OnCall/MERU修改状态.md",
-    "语文/小学英语.md"
+    "小学奥数"
   ]
 }
