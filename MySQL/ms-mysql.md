@@ -621,3 +621,193 @@ FROM `information_schema`.`column_statistics` cs,
      ) jt
 WHERE cs.HISTOGRAM->'$.\"histogram-type\"' = 'equi-height';
 ```
+
+# 测试Histogram的SQL
+
+
+[1] 创建一个学生表，students，这个students里面有一列为school
+
+```sql
+CREATE TABLE students (
+    id INT AUTO_INCREMENT,
+    name VARCHAR(100),
+    age INT,
+    school VARCHAR(255),
+    PRIMARY KEY (id)
+);
+```
+
+[2] 创建一个存储过程，往这个students里面随机insert 4000条数据。
+
+在这个例子中，我将使用MySQL的RAND()函数来随机生成学生的名字（只是为了示例，实际情况可能需要更复杂的逻辑来生成名字），年龄（在10到30之间），和学校名称（'School'后面跟一个1到100的随机数）。
+
+```sql
+DELIMITER //
+CREATE PROCEDURE InsertRandomStudents()
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    WHILE i < 4000 DO
+        INSERT INTO students (name, age, school) VALUES (CONCAT('Student', FLOOR(RAND() * 10000)), FLOOR(10 + RAND() * 20), CONCAT('School', FLOOR(1 + RAND() * 100)));
+        SET i = i + 1;
+    END WHILE;
+END //
+DELIMITER ;
+```
+
+你可以通过以下命令调用这个存储过程：
+
+```sql
+CALL InsertRandomStudents();
+```
+
+[3] 在school这一列上建histogram信息。
+
+MySQL 8.0及以上版本开始支持直方图。但是，你需要注意的是，不是所有的存储引擎都支持直方图。在InnoDB和MyISAM中，你可以创建直方图。
+
+以下是创建直方图的命令：
+
+```sql
+ANALYZE TABLE students UPDATE HISTOGRAM ON school WITH 100 BUCKETS;
+```
+
+在这个例子中，创建了一个包含100个buckets的直方图。可以根据需要调整buckets的数量。
+
+请注意，这些代码可能需要根据你的数据库系统和版本进行适当的修改。
+
+# 创建带functional index
+
+```
+CREATE TABLE `test_oauth2_access_token` (
+
+  `TOKEN_ID` varchar(255) NOT NULL,
+
+  `ACCESS_TOKEN` varchar(2048) DEFAULT NULL,
+
+  `REFRESH_TOKEN` varchar(2048) DEFAULT NULL,
+
+  `CONSUMER_KEY_ID` int DEFAULT NULL,
+
+  `AUTHZ_USER` varchar(100) DEFAULT NULL,
+
+  `TENANT_ID` int DEFAULT NULL,
+
+  `USER_DOMAIN` varchar(50) DEFAULT NULL,
+
+  `USER_TYPE` varchar(25) DEFAULT NULL,
+
+  `GRANT_TYPE` varchar(50) DEFAULT NULL,
+
+  `TIME_CREATED` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  `REFRESH_TOKEN_TIME_CREATED` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  `VALIDITY_PERIOD` bigint DEFAULT NULL,
+
+  `REFRESH_TOKEN_VALIDITY_PERIOD` bigint DEFAULT NULL,
+
+  `TOKEN_SCOPE_HASH` varchar(32) DEFAULT NULL,
+
+  `TOKEN_STATE` varchar(25) DEFAULT 'ACTIVE',
+
+  `TOKEN_STATE_ID` varchar(128) DEFAULT 'NONE',
+
+  `SUBJECT_IDENTIFIER` varchar(255) DEFAULT NULL,
+
+  `ACCESS_TOKEN_HASH` varchar(512) DEFAULT NULL,
+
+  `REFRESH_TOKEN_HASH` varchar(512) DEFAULT NULL,
+
+  `IDP_ID` int NOT NULL DEFAULT '-1',
+
+  `TOKEN_BINDING_REF` varchar(32) DEFAULT 'NONE',
+
+  `CONSENTED_TOKEN` varchar(6) DEFAULT NULL,
+
+  PRIMARY KEY (`TOKEN_ID`),
+
+  UNIQUE KEY `CON_APP_KEY` (`CONSUMER_KEY_ID`,`AUTHZ_USER`,`TENANT_ID`,`USER_DOMAIN`,`USER_TYPE`,`TOKEN_SCOPE_HASH`,`TOKEN_STATE`,`TOKEN_STATE_ID`,`IDP_ID`,`TOKEN_BINDING_REF`),
+
+  KEY `IDX_TC` (`TIME_CREATED`),
+
+  KEY `IDX_ATH` (`ACCESS_TOKEN_HASH`),
+
+  KEY `IDX_AT_TI_UD` (`AUTHZ_USER`,`TENANT_ID`,`TOKEN_STATE`,`USER_DOMAIN`),
+
+  KEY `IDX_AT_AT` (`ACCESS_TOKEN`),
+
+  KEY `IDX_AT_RTH` (`REFRESH_TOKEN_HASH`),
+
+  KEY `IDX_AT_RT` (`REFRESH_TOKEN`),
+
+  KEY `IDX_AT_CKID_AU_TID_UD_TSH_TS` (`CONSUMER_KEY_ID`,`AUTHZ_USER`,`TENANT_ID`,`USER_DOMAIN`,`TOKEN_SCOPE_HASH`,`TOKEN_STATE`),
+
+  KEY `IDX_AT_TBR_TS` (`TOKEN_BINDING_REF`,`TOKEN_STATE`),
+
+  KEY `IDX_AT_CKID_AU_TID_UD_TSH_TS_2` (`CONSUMER_KEY_ID`,(lower(`AUTHZ_USER`)),`TENANT_ID`,`USER_DOMAIN`,`TOKEN_SCOPE_HASH`,`TOKEN_STATE`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=COMPRESSED;
+```
+
+## 添加数据的store procedure
+
+```
+DELIMITER //
+CREATE PROCEDURE InsertRandomDataIntoTestOauth2AccessToken()
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    WHILE i < 1000 DO
+      INSERT INTO test_oauth2_access_token(
+        TOKEN_ID,
+        ACCESS_TOKEN,
+        REFRESH_TOKEN,
+        CONSUMER_KEY_ID,
+        AUTHZ_USER,
+        TENANT_ID,
+        USER_DOMAIN,
+        USER_TYPE,
+        GRANT_TYPE,
+        VALIDITY_PERIOD,
+        REFRESH_TOKEN_VALIDITY_PERIOD,
+        TOKEN_SCOPE_HASH,
+        TOKEN_STATE,
+        TOKEN_STATE_ID,
+        SUBJECT_IDENTIFIER,
+        ACCESS_TOKEN_HASH,
+        REFRESH_TOKEN_HASH,
+        IDP_ID,
+        TOKEN_BINDING_REF,
+        CONSENTED_TOKEN
+      )
+      VALUES (
+        CONCAT('token_', i),
+        CONCAT('access_', i),
+        CONCAT('refresh_', i),
+        i,
+        CONCAT('user_', i),
+        i,
+        CONCAT('domain_', i),
+        IF(i MOD 2 = 0, 'type1', 'type2'),
+        IF(i MOD 2 = 0, 'grant1', 'grant2'),
+        i,
+        i,
+        CONCAT('scope_', i),
+        IF(i MOD 2 = 0, 'ACTIVE', 'INACTIVE'),
+        CONCAT('state_', i),
+        CONCAT('subject_', i),
+        CONCAT('access_hash_', i),
+        CONCAT('refresh_hash_', i),
+        i,
+        CONCAT('ref_', i),
+        IF(i MOD 2 = 0, 'YES', 'NO')
+      );
+      SET i = i + 1;
+    END WHILE;
+END //
+DELIMITER ;
+```
+
+## 加入数据
+
+```
+call InsertRandomDataIntoTestOauth2AccessToken();
+```
