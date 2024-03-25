@@ -63,7 +63,9 @@
     - [TODO] 高校强基计划数学冲刺十一讲 - 周逸飞
     - [TODO] 数学的雨伞下
     - [TODO] The Art of Problem Solving Introduction to Algebra
-    - 
+    - [TODO] 数学基础 汪芳庭
+    - [TODO] 初中数学入门学习 代数篇 张文庆
+    - [TODO] 美国新数学丛书
 - 11. DLIB人脸关键点检测库
 - 12. 日本的一个客户要修改log_bin，在周一修改
 13. 写一个安装mysql debug环境的脚本
