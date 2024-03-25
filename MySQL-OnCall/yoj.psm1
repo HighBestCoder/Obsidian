@@ -672,6 +672,389 @@ function YOJ-FlexServerSASToken {
    $info | Get-MySqlServerSasToken -StorageKind PremiumFileShare -Minutes 600 -Permissions rwdl
 }
 
+function YOJ-FlexServerPITRDryRun {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ServerName,
+
+        [Parameter(Mandatory=$false)]
+        [string]$RestoreToTime
+    )
+
+    $restore_to_time = $RestoreToTime
+
+    # Step 1
+    $queryResult = Query-MySqlControlStore "Select
+        tserver.state,
+        tserver.create_time,
+        (case when trs.standby_count > 0 then 1 else 0 end) AS ha_enabled,
+        (case when JSON_VALUE(tserver.entity_extension_data, '$.IsAutoMigratedFromSingleServer') = 'true' then 1 else 0 end) AS auto_migrated,
+        tserver.replication_role,
+        tserver.server_name,
+        tserver.server_type,
+        tserver.server_version,
+        tserver.server_sku,
+        tserver.is_vnet_injected,
+        (case when trs.is_private_endpoint_enabled = 'true' then 'true' else 'false' end) AS is_private_endpoint_enabled,
+        tserver.storage_limit_in_mb,
+        tserver.storage_iops,
+        auto_scale_iops=trs.paid_iops_enabled,
+        tserver.autogrow,
+        data_storage_account=tsa.account_name,
+        tserver.customer_subscription_id,
+        tserver.customer_resource_group_name,
+        tserver.orcas_instance_id,
+        tserver.replication_set_id,
+        tserver.byok_enabled,
+        tserver.geo_redundant_backup_enabled,
+        trs.log_on_disk_enabled,
+        tos.azure_os_name,
+        msft_subscription_id = trg.subscription_id,
+        msft_resource_group_name = trg.resource_group_name
+    FROM dbo.entity_orcas_servers as tserver
+    LEFT JOIN dbo.entity_azure_virtual_machines AS tvm ON tserver.orcas_instance_id = tvm.orcas_instance_id
+    LEFT JOIN dbo.entity_azure_os as tos on tos.id = tvm.azure_os_entity_id
+    LEFT JOIN dbo.entity_azure_resource_groups AS trg ON tvm.resource_group_entity_id = trg.id
+    LEFT JOIN dbo.entity_orcas_replication_sets AS trs ON trs.replication_set_id = tserver.replication_set_id
+    LEFT OUTER JOIN dbo.entity_azure_storage_account AS tsa ON tserver.orcas_instance_id = tsa.orcas_instance_id
+    WHERE (tserver.server_name = '$ServerName')
+        AND (tserver.state != 'Tombstoned')
+        AND (tsa.account_name is NULL OR tsa.account_name LIKE '%fsdata')
+    ORDER BY tserver.create_time ASC;"
+
+    $is_vnet = $queryResult.is_vnet_injected
+    $is_private_link = $queryResult.is_private_endpoint_enabled
+
+    # 对 is_vnet 进行判断
+    if ($is_vnet -eq $true) {
+        Write-Output "VNET"
+    } else {
+        Write-Output "NOT_VNET"
+    }
+
+    # 对 is_private_link 进行判断
+    if ($is_private_link -eq $true) {
+        Write-Output "PRIVATE_LINK"
+        Write-Output "This is a private link server, PITR is not supported."
+        return
+    } else {
+        Write-Output "NOT_PRIVATE_LINK"
+    }
+
+    # Step 3
+    if ($is_vnet -eq $true) {
+        $subnetQueryResult = Query-MySqlControlStore "select 
+        concat ('/subscriptions/', vnet.delegated_virtual_network_subscription_id, '/resourceGroups/',vnet.delegated_virtual_network_resource_group, 
+        '/providers/Microsoft.Network/virtualNetworks/', vnet.network_name, '/subnets/', sbn.subnet_name) as subnet_arm_resource_id
+        from entity_orcas_servers as svr
+        join entity_dnc_network_container dnc on svr.orcas_instance_id = dnc.orcas_instance_id
+        join entity_delegated_subnet as sbn on sbn.id = dnc.delegated_subnet_entity_id
+        join entity_delegated_virtual_network as vnet on vnet.id = sbn.delegated_virtual_network_entity_id
+        where svr.server_name = '$ServerName'"
+        $subnet_arm_resource_id = $subnetQueryResult.subnet_arm_resource_id
+        Write-Output $subnet_arm_resource_id
+    }
+
+    # Step 4
+    if ($is_vnet -eq $true) {
+        $zoneQueryResult = Query-MySqlControlStore "select
+        zone.is_customer_private_dns_zone as need_for_restore,
+        CONCAT ('/subscriptions/' , convert(nvarchar(50), zone.private_dns_zone_subscription_id)  , '/resourceGroups/' , 
+        zone.private_dns_zone_resource_group ,'/providers/Microsoft.Network/privateDnsZones/' , zone.private_dns_zone_name) as zone_arm_resource_id
+        from entity_orcas_servers as svr
+        join entity_orcas_replication_sets as rs on svr.replication_set_id = rs.replication_set_id
+        join entity_azure_dns_record as dns on rs.replication_set_id = dns.orcas_instance_id
+        join entity_azure_private_dns_zone as zone on dns.private_dns_zone_entity_id = zone.id
+        where svr.server_name = '$ServerName'"
+        $need_for_restore = $zoneQueryResult.need_for_restore
+        $zone_arm_resource_id = $zoneQueryResult.zone_arm_resource_id
+        Write-Output $need_for_restore $zone_arm_resource_id 
+    }
+
+    # Step 5
+    $source_server = Get-MySqlServer2 -ServerName $ServerName
+    Write-Output "Restore to time: $restore_to_time"
+
+    $additionalParameters = @{}
+    if ($source_server.ServerEdition -eq "Burstable") {
+        $additionalParameters.ServerSku = "Standard_D2ds_v4"
+    }
+
+    if ($is_vnet -eq $false) {
+        Restore-MySqlServer -CustomerSubscriptionId $source_server.SubscriptionId -CustomerResourceGroup $source_server.ResourceGroup -SourceServerName $source_server.ServerName -TargetServerName "$(${source_server}.ServerName)-dry-run" -RestoreToTime $restore_to_time @additionalParameters
+    } elseif ($need_for_restore -eq $false) {
+        Restore-MySqlServer -CustomerSubscriptionId $source_server.SubscriptionId -CustomerResourceGroup $source_server.ResourceGroup -SourceServerName $source_server.ServerName -TargetServerName "$(${source_server}.ServerName)-dry-run" -RestoreToTime $restore_to_time -SubnetArmResourceId $subnet_arm_resource_id @additionalParameters
+    } else {
+        Restore-MySqlServer -CustomerSubscriptionId $source_server.SubscriptionId -CustomerResourceGroup $source_server.ResourceGroup -SourceServerName $source_server.ServerName -TargetServerName "$(${source_server}.ServerName)-dry-run" -RestoreToTime $restore_to_time -SubnetArmResourceId $subnet_arm_resource_id -PrivateDnsZoneArmResourceId $zone_arm_resource_id @additionalParameters
+    }
+}
+
+function YOJ-FlexServerPITRRealRun {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ServerName,
+
+        [Parameter(Mandatory=$false)]
+        [string]$RestoreToTime
+    )
+
+    $restore_to_time = $RestoreToTime
+
+    # Step 1
+    $queryResult = Query-MySqlControlStore "Select
+        tserver.state,
+        tserver.create_time,
+        (case when trs.standby_count > 0 then 1 else 0 end) AS ha_enabled,
+        (case when JSON_VALUE(tserver.entity_extension_data, '$.IsAutoMigratedFromSingleServer') = 'true' then 1 else 0 end) AS auto_migrated,
+        tserver.replication_role,
+        tserver.server_name,
+        tserver.server_type,
+        tserver.server_version,
+        tserver.server_sku,
+        tserver.is_vnet_injected,
+        (case when trs.is_private_endpoint_enabled = 'true' then 'true' else 'false' end) AS is_private_endpoint_enabled,
+        tserver.storage_limit_in_mb,
+        tserver.storage_iops,
+        auto_scale_iops=trs.paid_iops_enabled,
+        tserver.autogrow,
+        data_storage_account=tsa.account_name,
+        tserver.customer_subscription_id,
+        tserver.customer_resource_group_name,
+        tserver.orcas_instance_id,
+        tserver.replication_set_id,
+        tserver.byok_enabled,
+        tserver.geo_redundant_backup_enabled,
+        trs.log_on_disk_enabled,
+        tos.azure_os_name,
+        msft_subscription_id = trg.subscription_id,
+        msft_resource_group_name = trg.resource_group_name
+    FROM dbo.entity_orcas_servers as tserver
+    LEFT JOIN dbo.entity_azure_virtual_machines AS tvm ON tserver.orcas_instance_id = tvm.orcas_instance_id
+    LEFT JOIN dbo.entity_azure_os as tos on tos.id = tvm.azure_os_entity_id
+    LEFT JOIN dbo.entity_azure_resource_groups AS trg ON tvm.resource_group_entity_id = trg.id
+    LEFT JOIN dbo.entity_orcas_replication_sets AS trs ON trs.replication_set_id = tserver.replication_set_id
+    LEFT OUTER JOIN dbo.entity_azure_storage_account AS tsa ON tserver.orcas_instance_id = tsa.orcas_instance_id
+    WHERE (tserver.server_name = '$ServerName')
+        AND (tserver.state != 'Tombstoned')
+        AND (tsa.account_name is NULL OR tsa.account_name LIKE '%fsdata')
+    ORDER BY tserver.create_time ASC;"
+
+    $is_vnet = $queryResult.is_vnet_injected
+    $is_private_link = $queryResult.is_private_endpoint_enabled
+
+    # 对 is_vnet 进行判断
+    if ($is_vnet -eq $true) {
+        Write-Output "VNET"
+    } else {
+        Write-Output "NOT_VNET"
+    }
+
+    # 对 is_private_link 进行判断
+    if ($is_private_link -eq $true) {
+        Write-Output "PRIVATE_LINK"
+        Write-Output "This is a private link server, PITR is not supported."
+        return
+    } else {
+        Write-Output "NOT_PRIVATE_LINK"
+    }
+
+    # Step 3
+    if ($is_vnet -eq $true) {
+        $subnetQueryResult = Query-MySqlControlStore "select 
+        concat ('/subscriptions/', vnet.delegated_virtual_network_subscription_id, '/resourceGroups/',vnet.delegated_virtual_network_resource_group, 
+        '/providers/Microsoft.Network/virtualNetworks/', vnet.network_name, '/subnets/', sbn.subnet_name) as subnet_arm_resource_id
+        from entity_orcas_servers as svr
+        join entity_dnc_network_container dnc on svr.orcas_instance_id = dnc.orcas_instance_id
+        join entity_delegated_subnet as sbn on sbn.id = dnc.delegated_subnet_entity_id
+        join entity_delegated_virtual_network as vnet on vnet.id = sbn.delegated_virtual_network_entity_id
+        where svr.server_name = '$ServerName'"
+        $subnet_arm_resource_id = $subnetQueryResult.subnet_arm_resource_id
+        Write-Output $subnet_arm_resource_id
+    }
+
+    # Step 4
+    if ($is_vnet -eq $true) {
+        $zoneQueryResult = Query-MySqlControlStore "select
+        zone.is_customer_private_dns_zone as need_for_restore,
+        CONCAT ('/subscriptions/' , convert(nvarchar(50), zone.private_dns_zone_subscription_id)  , '/resourceGroups/' , 
+        zone.private_dns_zone_resource_group ,'/providers/Microsoft.Network/privateDnsZones/' , zone.private_dns_zone_name) as zone_arm_resource_id
+        from entity_orcas_servers as svr
+        join entity_orcas_replication_sets as rs on svr.replication_set_id = rs.replication_set_id
+        join entity_azure_dns_record as dns on rs.replication_set_id = dns.orcas_instance_id
+        join entity_azure_private_dns_zone as zone on dns.private_dns_zone_entity_id = zone.id
+        where svr.server_name = '$ServerName'"
+        $need_for_restore = $zoneQueryResult.need_for_restore
+        $zone_arm_resource_id = $zoneQueryResult.zone_arm_resource_id
+        Write-Output $need_for_restore $zone_arm_resource_id 
+    }
+
+    # Step 5
+    $source_server = Get-MySqlServer2 -ServerName $ServerName
+    Write-Output "Restore to time: $restore_to_time"
+
+    $additionalParameters = @{}
+    if ($source_server.ServerEdition -eq "Burstable") {
+        $additionalParameters.ServerSku = "Standard_D2ds_v4"
+    }
+
+    # Step 6
+    $source_server | Remove-MySqlServer
+
+    # Step 7
+    do {
+        $userInput = Read-Host "Please check XTS this server has been Tombstoned status, if Tombstoned, input yes, then we can continue. (y/n)"
+    } while ($userInput -ne "y")
+
+
+
+    # Step 8
+    if ($is_vnet -eq $false) {
+        Restore-MySqlServer -CustomerSubscriptionId $source_server.SubscriptionId -CustomerResourceGroup $source_server.ResourceGroup -SourceServerName $source_server.ServerName -TargetServerName $source_server.ServerName -RestoreToTime $restore_to_time @additionalParameters
+    } elseif ($need_for_restore -eq $false) {
+        Restore-MySqlServer -CustomerSubscriptionId $source_server.SubscriptionId -CustomerResourceGroup $source_server.ResourceGroup -SourceServerName $source_server.ServerName -TargetServerName $source_server.ServerName -RestoreToTime $restore_to_time -SubnetArmResourceId $subnet_arm_resource_id @additionalParameters
+    } else {
+        Restore-MySqlServer -CustomerSubscriptionId $source_server.SubscriptionId -CustomerResourceGroup $source_server.ResourceGroup -SourceServerName $source_server.ServerName -TargetServerName $source_server.ServerName -RestoreToTime $restore_to_time -SubnetArmResourceId $subnet_arm_resource_id -PrivateDnsZoneArmResourceId $zone_arm_resource_id @additionalParameters
+    }
+
+    # Step 7
+    do {
+        $userInput = Read-Host "Please check XTS this source server PITR has been ready (y/n)"
+    } while ($userInput -ne "y")
+
+    # Step 9
+    if ($source_server.ServerEdition -eq "Burstable") {
+        Set-MySqlServer -CustomerSubscriptionId $source_server.SubscriptionId -CustomerResourceGroup $source_server.ResourceGroup -ServerName $source_server.ServerName -Sku $source_server.ServerSku -ServerVersion $source_server.ServerVersion -VCores $source_server.VCore -ServerEdition $source_server.ServerEdition -Location $source_server.Location
+    }
+
+    # Step 10
+    Remove-MySqlServer -SubscriptionId $source_server.SubscriptionId -ResourceGroup $source_server.ResourceGroup -ServerName "$(${source_server}.ServerName)-dry-run"
+}
+
+<#
+.SYNOPSIS
+This function migrates a MySQL server to a flexible server on Azure using REST API.
+
+.DESCRIPTION
+The function signs in to an Azure account, acquires an access token, and uses it to call the Azure REST API to migrate a MySQL server to a flexible server.
+
+.PARAMETER IsMoonCakeEnv
+Specify the Azure environment. Default is set to Azure Mooncake environment (0). If set to 1, the function will use Azure China Cloud environment.
+
+.PARAMETER SubscriptionId
+The ID of your Azure subscription.
+
+.PARAMETER ResourceGroup
+The name of the target resource group where the flexible server will be created.
+
+.PARAMETER TargetFlexServerName
+The name of the target flexible server that will be created.
+
+.PARAMETER Location
+The location where the flexible server will be created.
+
+.PARAMETER SourceSingleServerName
+The name of the source single server that will be migrated.
+
+.EXAMPLE
+YOJ-MySQLImportRestAPI -SubscriptionId 2941a09d-7bcf-42fe-91ca-1765f521c829 -ResourceGroup migration-group -SourceSingleServerName yoj-test -TargetFlexServerName yoj-flex-0322 -Location eastus
+
+This example migrates the MySQL server 'yoj-test' to a flexible server 'yoj-flex-0322' in the 'eastus' location under the 'migration-group' resource group.
+#>
+function YOJ-MySQLImportRestAPI {
+    param (
+        #Specify the Azure environment (Default is set to Azure Mooncake environment)
+        $IsMoonCakeEnv = 0,
+
+        #Specify the subscription Id
+        [Parameter(Mandatory=$true)]
+        $SubscriptionId ="",
+
+        #Specify the target resource group name
+        [Parameter(Mandatory=$true)]
+        $ResourceGroup = "",
+
+        #Specify the target flexible server name
+        [Parameter(Mandatory=$true)]
+        $TargetFlexServerName = "",
+
+        #Specify the location
+        [Parameter(Mandatory=$true)]
+        $Location = "",
+
+        #Specify the source single server name
+        [Parameter(Mandatory=$true)]
+        $SourceSingleServerName = ""
+    )
+
+    # Import the module
+    Import-Module Az.Accounts
+
+    # Depending on the environment, set the API URL and environment name
+    if ($IsMoonCakeEnv -eq 1) 
+    {
+        $apiUrl = "https://management.chinacloudapi.cn:443/subscriptions/"+$SubscriptionId+"/resourceGroups/"+$ResourceGroup+"/providers/Microsoft.DBforMySQL/flexibleServers/"+$TargetFlexServerName+"?api-version=2022-06-01-privatepreview"
+        $env="AzureChinaCloud"
+    }
+    else
+    {
+        $apiUrl = "https://management.azure.com/subscriptions/"+$SubscriptionId+"/resourceGroups/"+$ResourceGroup+"/providers/Microsoft.DBforMySQL/flexibleServers/"+$TargetFlexServerName+"?api-version=2022-06-01-privatepreview"
+        $env="AzureCloud"
+    }
+
+    # Ask the user to sign in and get the token
+    $azureAccount = Connect-AzAccount -Environment $env -DeviceCode
+    Set-AzContext -Subscription $SubscriptionId
+    $context = Get-AzContext 
+    $profile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($profile)
+    $token = $profileClient.AcquireAccessToken($context.Subscription.TenantId)
+
+    # Define the headers for the API request
+    $headers = @{
+        'Authorization' = "Bearer $($token.AccessToken)"
+        'Content-Type'  = 'application/json'
+    }
+
+    # Define the payload for the API request
+    $postbody = @{
+        "sku" = @{
+            "name" = "Standard_D2ds_v4"
+            "tier" = "GeneralPurpose"
+        }
+        "properties" = @{
+            "administratorLogin" = "yoj"
+            "storage" = @{
+                "storageSizeGB" = 128
+                "autoGrow" = "Enabled"
+            }
+            "version" = "5.7"
+            "createMode" = "Migrate"
+            "sourceServerResourceId" = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.DBforMySQL/servers/$SourceSingleServerName"
+            "backup" = @{
+                "backupRetentionDays" = 7
+                "geoRedundantBackup" = "Enabled"
+            }
+        }
+        "location" = $Location
+        "type" = "Microsoft.DBforMySQL/flexibleServers"
+    }
+
+    # Convert the payload to JSON
+    [string]$payload= $postbody | ConvertTo-Json -Depth 10
+
+    # Print the payload
+    Write-Host $payload
+
+    # Invoke the API
+    $response = Invoke-RestMethod -Uri $apiUrl -Method Put  -Body $payload -Headers $headers
+
+    # Output the response
+    $response
+}
+
+Export-ModuleMember -Function YOJ-MySQLImportRestAPI
+Export-ModuleMember -Function YOJ-FlexServerPITRRealRun
+Export-ModuleMember -Function YOJ-FlexServerPITRDryRun
 Export-ModuleMember -Function YOJ-FlexServerSASToken
 Export-ModuleMember -Function YOJ-FlexServerJITPortal
 Export-ModuleMember -Function YOJ-SingleServerJITUrl
@@ -688,4 +1071,3 @@ Export-ModuleMember -Function YOJ-ComputeTableRows
 Export-ModuleMember -Function YOJ-MERUStorageResize
 
 # Import-Module "C:\Users\yoj\code\Obsidian\MySQL-OnCall\yoj.psm1" -Force
-
