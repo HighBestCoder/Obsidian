@@ -1,4 +1,5 @@
 
+
 1. 写一个functional index的查询SQL的PR
    - **[卡住]** 需要二毛那边重新复现这个问题，可能需要update SQL来更精确地定位这个问题
 2. 写一个CAS command用来调用mysql-import - **进行中**
@@ -66,7 +67,18 @@
     - [TODO] 数学基础 汪芳庭
     - [TODO] 初中数学入门学习 代数篇 张文庆
     - [TODO] 美国新数学丛书
+    - [TODO]  无穷分析引论
+    - [TODO] 穿越平行宇宙
+    - [TODO] 数论概论  用Mathematica探索数字世界的乐趣
+    - [TODO]《_数论基础_》是2011年哈尔滨工业大学出版社出版的图书，作者是_维诺格拉多夫_
+    - [TODO] 微积分学教程 https://www.zhihu.com/question/31075525
+    - 
 - 11. DLIB人脸关键点检测库
-- 12. 日本的一个客户要修改log_bin，在周一修改
 13. 写一个安装mysql debug环境的脚本
 	1. kernel-tools 安装了就有perf命令。
+14. 语文语料丛书
+	1. [TODO] 最佳景色描写辞典
+	2. [TODO] 文学描写辞典
+	3. [TODO] 写作成语分类词典
+	4. [TODO] 学生作文分类成语词典
+	5. ![[Pasted image 20240324215329.png]]
