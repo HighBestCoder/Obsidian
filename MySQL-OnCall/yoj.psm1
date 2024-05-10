@@ -956,9 +956,13 @@ The location where the flexible server will be created.
 The name of the source single server that will be migrated.
 
 .EXAMPLE
-YOJ-MySQLImportRestAPI -SubscriptionId 2941a09d-7bcf-42fe-91ca-1765f521c829 -ResourceGroup migration-group -SourceSingleServerName yoj-test -TargetFlexServerName yoj-flex-0322 -Location eastus
+MySQLImportRestAPI -SubscriptionId 2941a09d-7bcf-42fe-91ca-1765f521c829 -ResourceGroup migration-group -SourceSingleServerName yoj-test -TargetFlexServerName yoj-flex-0322 -Location eastus -UserName "adminuser" -Version "8.0.21" -StorageSizeGB 256 -SKUName "Standard_D4ds_v4"
 
-This example migrates the MySQL server 'yoj-test' to a flexible server 'yoj-flex-0322' in the 'eastus' location under the 'migration-group' resource group.
+This example migrates the MySQL server 'yoj-test' to a flexible server 'yoj-flex-0322' in the 'eastus' location under the 'migration-group' resource group. The flexible server will be configured with the following parameters:
+- Administrator login: 'adminuser'
+- MySQL version: '8.0.21'
+- Storage size: 256 GB
+- SKU: 'Standard_D4ds_v4'
 #>
 function YOJ-MySQLImportRestAPI {
     param (
@@ -983,7 +987,27 @@ function YOJ-MySQLImportRestAPI {
 
         #Specify the source single server name
         [Parameter(Mandatory=$true)]
-        $SourceSingleServerName = ""
+        $SourceSingleServerName = "",
+
+        #Specify the administrator login
+        [Parameter(Mandatory=$false)]
+        [string]$UserName = "yoj",
+
+        #Specify the administrator password
+        [Parameter(Mandatory=$false)]
+        [string]$Password = "Pwd",
+
+        #Specify the MySQL version
+        [ValidateSet("5.7", "8.0.21")]
+        [string]$Version = "8.0.21",
+
+        #Specify the storage size in GB
+        [Parameter(Mandatory=$false)]
+        [int]$StorageSizeGB = 128,
+
+        #Specify the SKU name
+        [Parameter(Mandatory=$false)]
+        [string]$SKUName = "Standard_D2ds_v4"
     )
 
     # Import the module
@@ -1018,16 +1042,17 @@ function YOJ-MySQLImportRestAPI {
     # Define the payload for the API request
     $postbody = @{
         "sku" = @{
-            "name" = "Standard_D2ds_v4"
+            "name" = $SKUName
             "tier" = "GeneralPurpose"
         }
         "properties" = @{
-            "administratorLogin" = "yoj"
+            "administratorLogin" = $UserName
+            "administratorLoginPassword" = $Password
             "storage" = @{
-                "storageSizeGB" = 128
+                "storageSizeGB" = $StorageSizeGB
                 "autoGrow" = "Enabled"
             }
-            "version" = "5.7"
+            "version" = $Version
             "createMode" = "Migrate"
             "sourceServerResourceId" = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.DBforMySQL/servers/$SourceSingleServerName"
             "backup" = @{
@@ -1052,6 +1077,223 @@ function YOJ-MySQLImportRestAPI {
     $response
 }
 
+<#
+.SYNOPSIS
+This function migrates a MySQL server from one location to another using REST API.
+
+.DESCRIPTION
+The function YOJ-OneBox-MySQLImportRestAPI takes in source and destination server names as mandatory parameters.
+It also accepts optional parameters such as UserName for AdministratorLogin, MySQL Version, StorageSizeGB, and SKUName.
+If the optional parameters are not provided, the function will use default values.
+
+.PARAMETER SrcServer
+The name of the source server. This parameter is mandatory.
+
+.PARAMETER DstServer
+The name of the destination server. This parameter is mandatory.
+
+.PARAMETER UserName
+The username for AdministratorLogin. If not provided, the default value 'yoj' will be used.
+
+.PARAMETER Version
+The version of MySQL. It only supports '5.7' or '8.0.21'. If not provided, '8.0.21' will be used as the default.
+
+.PARAMETER StorageSizeGB
+The storage size in GB. If not provided, the default value '128' will be used.
+
+.PARAMETER SKUName
+The SKU name. If not provided, the default value 'Standard_D2ds_v4' will be used.
+
+.EXAMPLE
+YOJ-OneBox-MySQLImportRestAPI -SrcServer "sourceServerName" -DstServer "destinationServerName"
+
+This example shows how to call the function with the mandatory parameters.
+
+.EXAMPLE
+YOJ-OneBox-MySQLImportRestAPI -SrcServer "sourceServerName" -DstServer "destinationServerName" -UserName "admin" -Version "5.7" -StorageSizeGB 128 -SKUName "Standard_D2ds_v4"
+YOJ-OneBox-MySQLImportRestAPI -SrcServer "sourceServerName" -DstServer "destinationServerName" -UserName "admin" -Version "8.0.21" -StorageSizeGB 128 -SKUName "Standard_D2ds_v4"
+
+This example shows how to call the function with both mandatory and optional parameters.
+#>
+function YOJ-OneBox-MySQLImportRestAPI {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$SrcServer,
+
+        [Parameter(Mandatory=$true)]
+        [string]$DstServer,
+
+        [Parameter(Mandatory=$false)]
+        [string]$UserName = "yoj",
+
+        [ValidateSet("5.7", "8.0.21")]
+        [string]$Version = "8.0.21",
+
+        [Parameter(Mandatory=$false)]
+        [int]$StorageSizeGB = 128,
+
+        [Parameter(Mandatory=$false)]
+        [string]$SKUName = "Standard_D2ds_v4"
+    )
+
+    # Check if DstServer parameter value is provided
+    if(-not $DstServer) {
+        throw "Please provide a valid DstServer parameter value."
+    }
+
+    # Check if SrcServer parameter value is provided
+    if(-not $SrcServer) {
+        throw "Please provide a valid SrcServer parameter value."
+    }
+
+    # Default certificate thumbprint
+    $script:DefaultRpCertThumbprint = "877495169fa05b9d8639a0ebc42022338f7d2324"
+
+    # Construct the URI for the REST API request
+    $uri = "https://localhost:8363/modules/ArmMySQL/subscriptions/ffffffff-ffff-ffff-ffff-ffffffffffff/resourceGroups/yoj-group/providers/Microsoft.DBforMySQL/flexibleServers/" + $DstServer + "?api-version=2021-05-01"
+
+    # Print the source and destination server names
+    write-host "Source server: $SrcServer"
+    write-host "Destination server: $DstServer"
+
+    # Construct the model for the REST API request body
+    $model = @{
+        Sku = @{
+            Name = $SKUName;
+            Tier = "GeneralPurpose"
+        };
+        Properties = @{
+            AdministratorLogin = $UserName;
+            Storage = @{
+                StorageSizeGB = $StorageSizeGB;
+                Iops = 150;
+                AutoGrow = "Disabled"
+            };
+            Version = $Version;
+            CreateMode =  "Migrate";
+            SourceServerResourceId = "/subscriptions/ffffffff-ffff-ffff-ffff-ffffffffffff/resourceGroups/yoj-group/providers/Microsoft.DBforMySQL/servers/$SrcServer";
+            Network = @{
+                PublicNetworkAccess = "Enabled"
+            };
+            Backup = @{
+                BackupRetentionDays = 7;
+                GeoRedundantBackup = "Disabled"
+            }
+        };
+        Location = "southcentralus";
+        Tags = @{
+            ElasticServer = "1";
+            MigrationSourceSingleServerResourceId = "/subscriptions/ffffffff-ffff-ffff-ffff-ffffffffffff/resourceGroups/yoj-group/providers/Microsoft.DBforMySQL/servers/$SrcServer"
+        }
+    }
+
+    # Convert the model to JSON format
+    $body = ConvertTo-Json $model
+
+    # Invoke the REST API request
+    Invoke-WebRequestInsecure -Method Put -Uri $uri -Body $body -ContentType "application/json" -CertificateThumbprint $DefaultRpCertThumbprint
+}
+
+function YOJ-OneBox-Init {
+    Select-SqlAzureEnvironment Local
+    Select-SqlAzureCluster OrcasBreadthOnebox
+    Set-MySqlFeatureSwitch -FeatureSwitchName IsSterling2MeruMigrationEnabled -FeatureSwitchValue ON -ServerType MySQL -SubscriptionId ffffffff-ffff-ffff-ffff-ffffffffffff -ResourceGroup * -ServerName * -FeatureSwitchDescription "Enabling for migration apis testing"
+
+
+    Set-MySqlResourceProviderConfiguration -ConfigName SkuMapping -ServerType MySQL -ConfigDescription "The sku mapping for Single to Flexible migration maintenance window" -ConfigValue '{"Basic":{1:"Standard_B1ms",2:"Standard_B2ms"},"GeneralPurpose":{2:"Standard_D2s_v3",4:"Standard_D4s_v3",8:"Standard_D8s_v3",16:"Standard_D16s_v3",32:"Standard_D32s_v3",64:"Standard_D64s_v4"},"MemoryOptimized":{2:"Standard_E2s_v3",4:"Standard_E4s_v3",8:"Standard_E8s_v3",16:"Standard_E16s_v3",32:"Standard_E32s_v3"}}'
+    Set-MySqlResourceProviderConfiguration -ConfigName MigrationStartHour -ServerType MySQL -ConfigDescription "Migration Start Hour" -ConfigValue 1
+    Set-MySqlResourceProviderConfiguration -ConfigName MigrationEndHour -ServerType MySQL -ConfigDescription "Migration End Hour" -ConfigValue 7
+    Set-MySqlResourceProviderConfiguration -ConfigName MigrationNotificationEventIdFS -ServerType MySQL -ConfigDescription "Migration Notification Event Id" -ConfigValue 8L6S-388
+    Set-MySqlFeatureSwitch -FeatureSwitchName IsSingle2FlexMigrationRePlatformEnabled -FeatureSwitchValue ON -ServerType MySQL
+    Set-MySqlFeatureSwitch -FeatureSwitchName IsSterling2MeruMigrationEnabled -FeatureSwitchValue ON -ServerType MySQL
+    Set-MySqlFeatureSwitch -FeatureSwitchName IsSingle2FlexMigrationRePlatformEnabled -FeatureSwitchValue ON -ServerType MySQL
+    Set-MySqlResourceProviderConfiguration -ConfigName SterlingCaCert -ServerType MySQL -ConfigDescription "The Sterling Combined CA Cert" -ConfigValue 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURkekNDQWwrZ0F3SUJBZ0lFQWdBQXVUQU5CZ2txaGtpRzl3MEJBUVVGQURCYU1Rc3dDUVlEVlFRR0V3SkoKUlRFU01CQUdBMVVFQ2hNSlFtRnNkR2x0YjNKbE1STXdFUVlEVlFRTEV3cERlV0psY2xSeWRYTjBNU0l3SUFZRApWUVFERXhsQ1lXeDBhVzF2Y21VZ1EzbGlaWEpVY25WemRDQlNiMjkwTUI0WERUQXdNRFV4TWpFNE5EWXdNRm9YCkRUSTFNRFV4TWpJek5Ua3dNRm93V2pFTE1Ba0dBMVVFQmhNQ1NVVXhFakFRQmdOVkJBb1RDVUpoYkhScGJXOXkKWlRFVE1CRUdBMVVFQ3hNS1EzbGlaWEpVY25WemRERWlNQ0FHQTFVRUF4TVpRbUZzZEdsdGIzSmxJRU41WW1WeQpWSEoxYzNRZ1VtOXZkRENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLTUV1eUtyCm1EMVg2Q1p5bXJWNTFDbmk0ZWlWZ0xHdzQxdU9LeW1hWk4raFhlMndDUVZ0MnlndXptS2lZdjYwaU5vUzZ6anIKSVozQVFTc0JVbnVJZDlNY2o4ZTZ1WWkxYWdubmMrZ1JRS2ZSek1waWpTM2xqd3VtVU5Lb1VNTW82dldySlllSwptcFljcVdlNFB3elY5L2xTRXkvQ0c5VndjUENQd0JMS0JzdWE0ZG5LTTNwMzF2anN1ZkZvUkVKSUU5TEF3cVN1ClhtRCt0cVlGL0xUZEIxa0MxRmtZbUdQMXBXUGdrQXg5WGJJR2V2T0Y2dXZVQTY1ZWhENWYveFh0YWJ6NU9UWnkKZGM5M1VrM3p5WkFzdVQzbHlTTlRQeDhrbUNGY0I1a3B2Y1k2N09kdWhqcHJsM1JqTTcxb0dESHdlSTEydi95ZQpqbDBxaHFkTmtOd25HamtDQXdFQUFhTkZNRU13SFFZRFZSME9CQllFRk9XZFdUQ0NSMWpNclBvSVZEYUdlenExCkJFM3dNQklHQTFVZEV3RUIvd1FJTUFZQkFmOENBUU13RGdZRFZSMFBBUUgvQkFRREFnRUdNQTBHQ1NxR1NJYjMKRFFFQkJRVUFBNElCQVFDRkRGMk81RzlSYUVJRm9OMjdUeWNsaEFPOTkyVDlMZGN3NDZRUUYrdmFLU20yZVQ5Mgo5aGtUSTdnUUN2bFlwTlJoY0wwRVlXb1NpaGZWQ3IzRnZEQjgxdWtNSlkyR1FFL3N6S04rT01ZM0VVL3QzV2d4CmprelNzd0YwN3I1MVhnZElHbjl3L3haY2hNQjVoYmdGL1grK1pSR2pEOEFDdFBoU056a0UxYWt4ZWhpL29DcjAKRXBuM28wV0M0enhlOVoyZXRjaWVmQzdJcEo1T0NCUkxiZjF3YldzYVk3MWs1aCszenZEeW55NjdHN2Z5VUloegprc0xpNHhhTm1qSUNxNDRZM2VrUUVlNStOYXVRcno0d2xIclFNejJuWlEvMS9JNmVZczlIUkN3Qlhic2R0VExTClI5STRMdEQrZ2R3eWFoNjE3anpWL09lQkhSbkRKRUxxWXptcAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlEampDQ0FuYWdBd0lCQWdJUUF6cng1cWNScWFDN0tHU3hIUW42NVRBTkJna3Foa2lHOXcwQkFRc0ZBREJoCk1Rc3dDUVlEVlFRR0V3SlZVekVWTUJNR0ExVUVDaE1NUkdsbmFVTmxjblFnU1c1ak1Sa3dGd1lEVlFRTEV4QjMKZDNjdVpHbG5hV05sY25RdVkyOXRNU0F3SGdZRFZRUURFeGRFYVdkcFEyVnlkQ0JIYkc5aVlXd2dVbTl2ZENCSApNakFlRncweE16QTRNREV4TWpBd01EQmFGdzB6T0RBeE1UVXhNakF3TURCYU1HRXhDekFKQmdOVkJBWVRBbFZUCk1SVXdFd1lEVlFRS0V3eEVhV2RwUTJWeWRDQkpibU14R1RBWEJnTlZCQXNURUhkM2R5NWthV2RwWTJWeWRDNWoKYjIweElEQWVCZ05WQkFNVEYwUnBaMmxEWlhKMElFZHNiMkpoYkNCU2IyOTBJRWN5TUlJQklqQU5CZ2txaGtpRwo5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBdXpmTk5OeDdhOG15YUpDdFNuWC9Scm9oQ2dpTjlSbFV5ZnVJCjIvT3U4anFKa1R4NjVxc0dHbXZQckMzb1hna2tSTHBpbW43V282aCs0RlIxSUFXc1VMZWNZeHBzTU56YUh4bXgKMXg3ZS9kZmd5NVNETjY3c0gwTk8zWHNzMHIwdXBTL2txYml0T3RTWnBMWWw2WnRyQUdDU1lQOVBJVWtZOTJlUQpxMkVHbkkveXV1bTA2Wkl5YTdYelYraGRHODJNSGF1VkJKVko4elV0bHVOSmJkMTM0L3RKUzdTc1ZRZXBqNVd6CnRDTzdURzFGOFBhcHNwVXd0UDFNVll3blNsY1VmSUtkelhPUzB4WktCZ3lNVU5HUEhnbStGNkhtSWNyOWcrVVEKdklPbENzUm5LUFp6RkJROVJuYkRoeFNKSVRSTnJ3OUZES1pKb2JxN25NV3hNNE1waFFJREFRQUJvMEl3UURBUApCZ05WSFJNQkFmOEVCVEFEQVFIL01BNEdBMVVkRHdFQi93UUVBd0lCaGpBZEJnTlZIUTRFRmdRVVRpSlVJQmlWCjV1TnU1Zy82K3JrUzdRWVhqemt3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUdCbktKUnZEa2hqNnpIZDZtY1kKMVlsOVBNV0xTbi9wdnRzckY5K3dYM04zS2pJVE9ZRm5Rb1FqOGtWbk5leUl2L2lQc0dFTU5LU3VJRXlFeHR2NApOZUYyMmQrbVFydkhSQWlHZnpaMEpGcmFiQTBVV1RXOThrbmR0aC9Kc3cxSEtqMlpMN3RjdTdYVUlPR1pYMU5HCkZkdG9tL0R6TU5VK01lS05oSjdqaXRyYWxqNDFFNlZmOFBsd1VIQkhRUkZYR1U3QWo2NEd4SlVURnk4YkpaOTEKOHJHT21hRnZFN0ZCY2Y2SUtzaFBFQ0JWMS9NVVJlWGdSUFRxaDVVeWt3NytVMGI2TEozL2l5SzVTOWtKUmFUZQpwTGlhV04wYmZWS2ZqbGxEaUlHa25pYlZiNjNkRGNZM2ZlMERraHZsZDE5MjdqeU54RjFXVzZMWlptNnpOVGZsCk1yWT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ=='
+}
+
+<#
+.SYNOPSIS
+This function creates a new PFS server.
+
+.DESCRIPTION
+The function YOJ-OneBox-PFS-SingleServerTest creates a new PFS server with given parameters. 
+If parameters are not provided, the function will use default values.
+
+.PARAMETER AdminPassword
+The password for the admin user. If not provided, the default value 'fedora12@' will be used.
+
+.PARAMETER AdminUser
+The admin username. If not provided, the default value 'yoj' will be used.
+
+.PARAMETER ResourceGroup
+The resource group. If not provided, the default value 'yoj-group' will be used.
+
+.PARAMETER ServerName
+The server name. If not provided, the default value 'yoj-test-migration' will be used.
+
+.PARAMETER ServerType
+The server type. If not provided, the default value 'MySQL.Server.PAL' will be used.
+
+.PARAMETER ServiceLevelObjective
+The service level objective. If not provided, the default value 'MYSQL_GP_Gen5_2' will be used.
+
+.PARAMETER Storage
+The storage size in GB. If not provided, the default value '128' will be used.
+
+.PARAMETER SubscriptionId
+The subscription Id. If not provided, the default value 'ffffffff-ffff-ffff-ffff-ffffffffffff' will be used.
+
+.PARAMETER Version
+The version of MySQL. If not provided, the default value '5.7' will be used.
+
+.PARAMETER PrivateFeature
+The private feature. If not provided, the default value 'PFS' will be used.
+
+.EXAMPLE
+YOJ-OneBox-PFS-SingleServerTest -AdminPassword "password" -AdminUser "user" -ResourceGroup "group" -ServerName "server" -ServerType "type" -ServiceLevelObjective "objective" -Storage 128 -SubscriptionId "id" -Version "version" -PrivateFeature "feature"
+
+This example shows how to call the function with both mandatory and optional parameters.
+#>
+function YOJ-OneBox-SingleServerCreate {
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$AdminPassword = "fedora12@",
+        
+        [Parameter(Mandatory=$false)]
+        [string]$AdminUser = "yoj",
+        
+        [Parameter(Mandatory=$false)]
+        [string]$ResourceGroup = "yoj-group",
+        
+        [Parameter(Mandatory=$false)]
+        [string]$ServerName,
+        
+        [Parameter(Mandatory=$false)]
+        [string]$ServerType = "MySQL.Server.PAL",
+        
+        [Parameter(Mandatory=$false)]
+        [string]$ServiceLevelObjective = "MYSQL_GP_Gen5_2",
+        
+        [Parameter(Mandatory=$false)]
+        [int]$Storage = 128,
+        
+        [Parameter(Mandatory=$false)]
+        [string]$SubscriptionId = "ffffffff-ffff-ffff-ffff-ffffffffffff",
+        
+        [Parameter(Mandatory=$false)]
+        [string]$Version = "5.7",
+        
+        [Parameter(Mandatory=$false)]
+        [string]$PrivateFeature = "PFS"
+    )
+    
+    Select-SqlAzureEnvironment Test
+    Select-SqlAzureCluster Wasd-test-osshf-southcentralus1-a
+    New-ElasticServer2 -AdminPassword $AdminPassword -AdminUser $AdminUser -ResourceGroup $ResourceGroup -ServerName $ServerName -ServerType $ServerType -ServiceLevelObjective $ServiceLevelObjective -Storage $Storage -SubscriptionId $SubscriptionId -Version $Version -PrivateFeature $PrivateFeature
+}
+
+Export-ModuleMember -Function YOJ-OneBox-SingleServerCreate
+Export-ModuleMember -Function YOJ-OneBox-Init
+Export-ModuleMember -Function YOJ-OneBox-MySQLImportRestAPI
 Export-ModuleMember -Function YOJ-MySQLImportRestAPI
 Export-ModuleMember -Function YOJ-FlexServerPITRRealRun
 Export-ModuleMember -Function YOJ-FlexServerPITRDryRun
