@@ -1,7 +1,9 @@
 # 编译
 
 ```Cpp
-apt-get install -y gcc-8 g++-8 libssl-dev libaio-dev libisal-dev libncurses5-dev libnuma-dev bison cmake g++ git perl-modules sed unzip tar systemtap-sdt-dev pkg-config patchelf zlib1g-dev
+# os/docker based on ubuntu:18.04
+
+apt-get install -y build-essential libssl-dev libaio-dev libisal-dev libncurses5-dev libnuma-dev bison cmake g++ git perl-modules sed unzip tar systemtap-sdt-dev pkg-config patchelf zlib1g-dev
 
 mkdir -p build
 cd build

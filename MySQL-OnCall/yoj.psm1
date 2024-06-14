@@ -1007,7 +1007,11 @@ function YOJ-MySQLImportRestAPI {
 
         #Specify the SKU name
         [Parameter(Mandatory=$false)]
-        [string]$SKUName = "Standard_D2ds_v4"
+        [string]$SKUName = "Standard_D2ds_v4",
+
+        #Specify the online/offline  OnlineMigrate
+        [ValidateSet("Migrate", "OnlineMigrate")]
+        [string]$Mode = "Migrate"
     )
 
     # Import the module
@@ -1053,7 +1057,7 @@ function YOJ-MySQLImportRestAPI {
                 "autoGrow" = "Enabled"
             }
             "version" = $Version
-            "createMode" = "Migrate"
+            "createMode" = $Mode
             "sourceServerResourceId" = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.DBforMySQL/servers/$SourceSingleServerName"
             "backup" = @{
                 "backupRetentionDays" = 7
@@ -1291,6 +1295,112 @@ function YOJ-OneBox-SingleServerCreate {
     New-ElasticServer2 -AdminPassword $AdminPassword -AdminUser $AdminUser -ResourceGroup $ResourceGroup -ServerName $ServerName -ServerType $ServerType -ServiceLevelObjective $ServiceLevelObjective -Storage $Storage -SubscriptionId $SubscriptionId -Version $Version -PrivateFeature $PrivateFeature
 }
 
+function YOJ-ExtractAndExecute {
+    param (
+        [string]$inputString
+    )
+
+    $regions = @(
+        "australiacentral",
+        "australiacentral2",
+        "australiaeast",
+        "australiasoutheast",
+        "austriaeast",
+        "belgiumcentral",
+        "brazilsouth",
+        "brazilsoutheast",
+        "canadacentral",
+        "canadaeast",
+        "centralindia",
+        "centralus",
+        "centraluseuap",
+        "chilecentral",
+        "denmarkeast",
+        "eastasia",
+        "eastus",
+        "eastus2",
+        "eastus2euap",
+        "eastusslv",
+        "eastusstg",
+        "francecentral",
+        "francesouth",
+        "germanynorth",
+        "germanywestcentral",
+        "indiasouthcentral",
+        "indonesiacentral",
+        "israelcentral",
+        "israelnorthwest",
+        "italynorth",
+        "japaneast",
+        "japanwest",
+        "jioindiacentral",
+        "jioindiawest",
+        "koreacentral",
+        "koreasouth",
+        "malaysiasouth",
+        "malaysiawest",
+        "mexicocentral",
+        "newzealandnorth",
+        "northcentralus",
+        "northeurope",
+        "norwayeast",
+        "norwaywest",
+        "polandcentral",
+        "qatarcentral",
+        "southafricanorth",
+        "southafricawest",
+        "southcentralus",
+        "southcentralusstg",
+        "southeastasia",
+        "southeastus",
+        "southindia",
+        "spaincentral",
+        "swedencentral",
+        "swedensouth",
+        "switzerlandnorth",
+        "switzerlandwest",
+        "taiwannorth",
+        "taiwannorthwest",
+        "uaecentral",
+        "uaenorth",
+        "uknorth",
+        "uksouth",
+        "uksouth2",
+        "ukwest",
+        "westcentralus",
+        "westeurope",
+        "westindia",
+        "westus",
+        "westus.validation",
+        "westus2",
+        "westus3"
+    )
+
+    if ($inputString -match "elastic_server_id: ([a-z0-9-]+)") {
+        $elastic_server_id = $Matches[1]
+    }
+
+    if ($inputString -match "in ([A-Za-z]+) for") {
+        $region = $Matches[1].ToLower()
+    }
+
+    if ($inputString -match "server: ([a-z0-9-]+)") {
+        $server_name = $Matches[1]
+    }
+
+    $region_name = $regions | Where-Object { $_ -like "*$region*" }
+
+    if ($region_name) {
+        Select-SqlAzureEnvironment Prod
+        Select-SqlAzureCluster "Wasd-prod-${region_name}-a"
+        Query-MySqlControlStore "Select * from entity_migration_servers where elastic_server_id='${elastic_server_id}'"
+    }
+    else {
+        Write-Output "No matching region found."
+    }
+}
+
+Export-ModuleMember -Function YOJ-ExtractAndExecute
 Export-ModuleMember -Function YOJ-OneBox-SingleServerCreate
 Export-ModuleMember -Function YOJ-OneBox-Init
 Export-ModuleMember -Function YOJ-OneBox-MySQLImportRestAPI
