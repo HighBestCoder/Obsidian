@@ -139,11 +139,30 @@ mkdir -p /src
 
 # 放ssh private key
 
+安装
+
+tdnf install dotnet-sdk-7.0
+检查 
+dotnet --version 
+
+安装证书管理
+dotnet tool install -g git-credential-manager
+
+安装成功之后，需要重新连上linux
+
+git-credential-manager configure
+git config --global credential.azreposCredentialType oauth
+
+然后下载代码
+
+ git clone https://msdata.visualstudio.com/DefaultCollection/Database%20Systems/_git/orcasql-mysql mysql
+
+
+# 修改CMakefiles.txt 8.0
 
 
 为了在调试的时候，我们能够拿到符号表，相应的值。这里我们需要在编译的时候，带上编译信息。所以我们需要修改一下CMakefiles.txt和build.sh
 
-# 修改CMakefiles.txt
 
 ```
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
@@ -153,11 +172,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ![[Pasted image 20240315111742.png]]
 
-# 修改build.sh
+# 修改build.sh 8.0
 
 ```bash
 cmake_args='-DWITH_BOOST=../source_downloads -DENABLE_EXPERIMENT_SYSVARS=ON -DWITHOUT_GROUP_REPLICATION=ON -DWITH_ZLIB=system -DWITH_NDB=OFF -DWITHOUT_NDBCLUSTER_STORAGE_ENGINE=ON -DMINIMAL_RELWITHDEBINFO=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS=-O0 -DCMAKE_C_FLAGS=-O0'
 ```
+
+# 修改 build.sh 5.7
+
+```bash
+cmake_args="-DWITH_BOOST=../source_downloads/mysql-boost/$MYSQL_BOOST_VERSION/content -DWITH_GMOCK=../source_downloads -DWITH_ZLIB=system"
+```
+
+
+
+
 
 # 拿token
 
@@ -194,6 +223,8 @@ git checkout 50091de2082e1adf002c9019239d7249a7362dbc
 # 准备文件pfs-mount.sh
 
 ```Bash
+cat <<"EOF"> pfs-mount.sh
+
 #!/bin/bash
 
 # Check if the correct number of arguments are passed
@@ -229,6 +260,7 @@ echo "export MY_VERLAINE_KEY=${2}" > /src/start/fsenv
 echo "export MY_VERLAINE_DOMAIN=file.core.windows.net" >> /src/start/fsenv
 echo "export MY_VERLAINE_ACCOUNT=${1}" >> /src/start/fsenv
 echo "export MY_VERLAINE_SHARE=share" >> /src/start/fsenv
+EOF
 ```
 
 # onebox上拿参数
@@ -251,7 +283,7 @@ password=w==
 ```
 
 
-# onebox上copy文件
+# onebox server上copy文件
 
 现在到onebox-meru server vm中准备copy文件
 
@@ -269,14 +301,21 @@ cp: cannot create symbolic link './lib/private/libsyscall_intercept.so.0': Opera
 ```
 这个不重要。只是说软链接文件copy失败。后面我们会在debug节点上进行重建这个软链接。
 
-# pfs copy文件到debug vm
+# debug server pfs copy文件到debug vm
 
 ```Bash
+
+mkdir -p /src/start
+cd /src/start
+
 cp -rf /app/work/temp/my.ini /app/work/temp/verlaine.env /app/work/temp/vml_file_settings.json ./
 ```
 
-# debug vm上的启动脚本
+# debug vm上的启动脚本 (8.0)
 ```Bash
+cd /src/start
+
+cat <<"EOF"> start
 #!/bin/bash
 
 truncate -s 0 /var/log/messages
@@ -354,6 +393,95 @@ LD_PRELOAD="/mysql/lib/private/libsyscall.so /mysql/lib/private/libmyaio.so /usr
  --console                                                                                             \
  --core-file                                                                                           \
  --user=root
+EOF
+
+chmod +x start
+```
+
+# debug vm上的启动脚本(5.7)
+
+```bash
+#!/bin/bash
+
+set -e
+
+truncate -s 0 /var/log/messages
+
+BASE="/src/start"
+
+if [[ ! -e /mysql/lib ]]; then
+    cp -rf /app/work/temp/lib /mysql/
+fi
+
+source ${BASE}/fsenv
+source ${BASE}/verlaine.env
+
+export MYFILE_MOUNT="/app/work"
+export MOUNT_DIR="/app/work"
+export FUSE_DIR="/app/work2"
+export BASE_FOLDER="/mysql"
+export DATA_FOLDER="$MOUNT_DIR/data"
+export TEMP_FOLDER="$MOUNT_DIR/temp"
+export BINLOGS_DIR="$MOUNT_DIR/binlogs"
+export SETUP_COOKIE="$DATA_FOLDER/.setup"
+export ENGINE_VERSION_COOKIE="$DATA_FOLDER/.dataversion"
+export VERSION_UPGRADING_COOKIE="$DATA_FOLDER/.versionupgrading"
+export BUILD_NUMBER_COOKIE="$DATA_FOLDER/.build_number"
+export ENGINE_RUNNING_COOKIE="$DATA_FOLDER/.running"
+export ENGINECONTAINERSTARTTIME="$DATA_FOLDER/.enginecontainerstarttime"
+export DATAVERSIONUPGRADE="$DATA_FOLDER/.dataversionupgrade"
+export GARBAGE_DATA_FILE=$DATA_FOLDER/''$'\003'
+export INIT_FILE="$MOUNT_DIR/bootstrap.sql"
+export MYSQLD_PID="-1"
+export PRELOAD_LIBS=""
+export IS_STANDALONE=0
+export REPLICATION_SET_ROLE_FILE="$MOUNT_DIR/replication_set_role.cnf"
+export REPLICATION_SET_ROLE="Single"
+export LOG_DISK="/dev/disk0"
+export VFS_TOOLS="$BASE_FOLDER/bin"
+export VFS_HEADER_BASE_STR=$(cat /etc/hostname)
+export REDO_FS_NAME="disk_for_redofs"
+export BINLOG_FS_NAME="disk_for_binlogfs"
+export MYSQL_MB=$((1024*1024))
+export MYSQL_GB=$((MYSQL_MB*1024))
+export REDOFS80D_LENGTH=16649289728
+
+rm -rf /mysql/lib/libsyscall_intercept.so.0
+ln -s /mysql/lib/libsyscall_intercept.so /mysql/lib/libsyscall_intercept.so.0
+
+export VML_FILE_SETTINGS_JSON_PATH="${BASE}/vml_file_settings.json"
+export LD_LIBRARY_PATH=/mysql/lib:$LD_LIBRARY_PATH
+mkdir -p /mnt/temp
+mkdir -p /tmp/mysql
+
+
+dir_to_add="/src/orcasql-mysql/out/bin"
+# 检查~/.bashrc中是否已经存在"orcasql-mysql"
+cnt=$(grep -c "orcasql-mysql" ~/.bashrc)
+
+if [[ $cnt -eq 0 ]]; then
+    # 将路径添加到PATH变量，并保存到~/.bashrc文件中
+    echo "export PATH=\$PATH:$dir_to_add" >> ~/.bashrc
+
+    # 使改动立即生效
+    source ~/.bashrc
+
+    echo "Path added successfully."
+else
+    echo "Path is already in ~/.bashrc."
+fi
+
+mkdir -p /app/work/binlogs/
+
+# start with release version and with debug info
+LD_PRELOAD="/mysql/lib/libsyscall.so /mysql/lib/libmyaio.so /usr/lib/libjemalloc.so.2" \
+ /src/orcasql-mysql/out/sql/mysqld                                                                     \
+ --defaults-file=${BASE}/my.ini                                                                        \
+ --basedir=/mysql                                                                                      \
+ --datadir=/app/work                                                                                   \
+ --console                                                                                             \
+ --core-file                                                                                           \
+ --user=root
 ```
 
 # 连接 mysql
@@ -362,3 +490,14 @@ LD_PRELOAD="/mysql/lib/private/libsyscall.so /mysql/lib/private/libmyaio.so /usr
 ln -s /tmp/mysql/mysql.sock /tmp/mysql.sock
  mysql -uazure_superuser
 ```
+
+
+# 连接
+
+```bash
+ mysql -uazure_superuser
+```
+
+# 日志
+
+注意：日志都是打到了/var/log/messages文件

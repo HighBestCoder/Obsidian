@@ -811,3 +811,35 @@ DELIMITER ;
 ```
 call InsertRandomDataIntoTestOauth2AccessToken();
 ```
+
+# 打开表的流程
+
+
+```
+#0  0x00007efc61303965 in pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libpthread.so.0
+#1  0x0000000000ffb03b in wait at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/os/os0event.cc:165
+#2  os_event::wait_low at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/os/os0event.cc:335
+#3  0x00000000010a0ce9 in sync_array_wait_event at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/sync/sync0arr.cc:475
+#4  0x0000000000f8c1c4 in TTASEventMutex<GenericPolicy>::wait at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/include/ut0mutex.ic:89
+#5  0x0000000000f8c33b in spin_and_try_lock at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/include/ib0mutex.h:850
+#6  enter at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/include/ib0mutex.h:707
+#7  PolicyMutex<TTASEventMutex<GenericPolicy> >::enter at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/include/ib0mutex.h:987
+#8  0x0000000001152f41 in dict_table_open_on_name at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/dict/dict0dict.cc:1238
+#9  0x0000000000f72a73 in ha_innobase::open_dict_table at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/handler/ha_innodb.cc:6250
+#10 0x0000000000f8273b in ha_innobase::open at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/innobase/handler/ha_innodb.cc:5888
+#11 0x000000000081b33e in handler::ha_open at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/handler.cc:2759
+#12 0x0000000000dc239a in open_table_from_share at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/table.cc:3353
+#13 0x0000000000cc18b9 in open_table at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_base.cc:3559
+#14 0x0000000000cc52b6 in open_and_process_table at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_base.cc:5145
+#15 open_tables at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_base.cc:5756
+#16 0x0000000000cc5e62 in open_tables_for_query at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_base.cc:6531
+#17 0x0000000000d14ff6 in execute_sqlcom_select at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_parse.cc:5127
+#18 0x0000000000d18bce in mysql_execute_command at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_parse.cc:2792
+#19 0x0000000000d1aaad in mysql_parse at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_parse.cc:5582
+#20 0x0000000000d1bcca in dispatch_command at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_parse.cc:1458
+#21 0x0000000000d1cb74 in do_command at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/sql_parse.cc:999
+#22 0x0000000000dedaec in handle_connection at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/sql/conn_handler/connection_handler_per_thread.cc:300
+#23 0x0000000001256a94 in pfs_spawn_thread at /export/home/pb2/build/sb_0-27500212-1520171728.22/mysql-5.7.22/storage/perfschema/pfs.cc:2190
+#24 0x00007efc612ffdd5 in start_thread () from /lib64/libpthread.so.0
+#25 0x00007efc5fdb8ead in clone () from /lib64/libc.so.6
+```

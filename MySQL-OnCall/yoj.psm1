@@ -29,7 +29,7 @@ function YOJ-SetSingleParameter {
         [string]$ConfigValue
     )
 
-    $info = Get-ElasticServerInstance2 -ServerName $ServerName -IncludeFabricProperties
+    $info = Get-ElasticServerInstance2 -ServerName $ServerName -IncludeFabricProperties -State *
     $info | Get-ElasticServerConfig -ConfigName $ConfigName
     $info | Set-ElasticServerConfig -ConfigName $ConfigName -ConfigValue $configValue -ConfigType UserConfiguration
     $info | Get-ElasticServerConfig -ConfigName $ConfigName
@@ -80,6 +80,16 @@ function YOJ-MERUSASToken {
 
     $info = Get-MySqlServer -ServerName $ServerName
     $info | Get-MySqlServerSasToken -StorageKind PremiumFileShare  -Minutes 600 -Permissions rwdl
+}
+
+function YOJ-MERUSASTokenBlob {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ServerName
+    )
+
+    $info = Get-MySqlServer -ServerName $ServerName
+    $info | Get-MySqlServerSasToken -StorageKind BlobContainer  -Minutes 600 -Permissions rwdl
 }
 
 <#
@@ -381,7 +391,7 @@ function YOJ-FlexVMJITUrl {
    )
 
    # Call your function to get server info
-   $info = Get-MySqlServer2 -ServerName $ServerName
+   $info = Get-MySqlServer2 -ServerName $ServerName -State *
 
    # Prepare the parameters for the URL
    $ResourceType = "Remote%20Access%20-%20IAAS"
@@ -468,6 +478,8 @@ The name of the server for which to generate the JIT access URL.
 
 .PARAMETER SubscriptionId
 The subscription ID to use in the JIT access URL.
+This subscription is not single-server's subscription. It's get from PaaSV2 from service-fabric app. Please check with OneNote content.
+
 
 .EXAMPLE
 PS C:\Users\yoj\SqlAzureConsole> YOJ-SingleServerJITUrl -ServerName "ne-prd-spark-mysql-01-cloud-shell-deleteme-dryrun3" -SubscriptionId "9697d26c-2d7f-4f62-8743-71c824a941d4"
@@ -1299,7 +1311,7 @@ function YOJ-ExtractAndExecute {
     param (
         [string]$inputString
     )
-
+ 
     $regions = @(
         "australiacentral",
         "australiacentral2",
@@ -1371,32 +1383,471 @@ function YOJ-ExtractAndExecute {
         "westeurope",
         "westindia",
         "westus",
-        "westus.validation",
         "westus2",
         "westus3"
     )
-
+ 
     if ($inputString -match "elastic_server_id: ([a-z0-9-]+)") {
         $elastic_server_id = $Matches[1]
     }
-
-    if ($inputString -match "in ([A-Za-z]+) for") {
+ 
+    if ($inputString -match "in ([A-Za-z0-9-]+) for") {
         $region = $Matches[1].ToLower()
     }
-
+ 
     if ($inputString -match "server: ([a-z0-9-]+)") {
         $server_name = $Matches[1]
     }
-
-    $region_name = $regions | Where-Object { $_ -like "*$region*" }
-
-    if ($region_name) {
-        Select-SqlAzureEnvironment Prod
-        Select-SqlAzureCluster "Wasd-prod-${region_name}-a"
-        Query-MySqlControlStore "Select * from entity_migration_servers where elastic_server_id='${elastic_server_id}'"
+ 
+    Write-Host ${elastic_server_id}
+    Write-Host ${server_name}
+    Write-Host ${region}
+ 
+    # Select-SqlAzureEnvironment Prod
+    if ($region -match '\d$') {
+        Select-SqlAzureCluster "Wasd-prod-${region}-a"
+    } else {
+        Select-SqlAzureCluster "Wasd-prod-${region}1-a"
     }
-    else {
-        Write-Output "No matching region found."
+    Query-MySqlControlStore "Select * from entity_migration_schedules where elastic_server_id='${elastic_server_id}'"
+}
+
+function YOJ-SingleServerCommands {
+    param (
+        [string]$ServerName
+    )
+
+    # 获取服务器信息
+    # $info = Get-ElasticServerInstance2 -ServerName $ServerName -IncludeFabricProperties -State *
+
+    $info = Get-ElasticServerInstance2 -ServerName $ServerName -State *
+
+
+    # 输出服务器信息
+    $info
+
+    # 定义命令列表及其功能
+    $commands = @(
+        @{ Command = "Select-SqlAzureEnvironment Prod"; Description = "Select Environment" },
+        @{ Command = "Select-SqlAzureCluster Wasd-prod-uaenorth1-a-CR1"; Description = "Select Cluster" },
+        @{ Command = "Get-JitAccess -WorkitemSource IcM -Justification `"Reason for request`" -WorkitemId IcMID"; Description = "Get Jit Access" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | \\arsing\shared\New-JITRequest.ps1"; Description = "New JIT Request" },
+        @{ Command = "Start-Process `"https://azurewatson.cloudapp.net/?ClusterName~$($info.TenantRingName)&AppName~$($info.PhysicalInstanceName)`""; Description = "AW dumps" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | Dump-Process -ProcessName Dkmon.exe -ApplicationNameUri $($info.FabricApplicationUri)"; Description = "Dump process" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | Kill-Process -ProcessName DkMon.exe -ApplicationNameUri $($info.FabricApplicationUri)"; Description = "Kill process" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | Kill-Process -ProcessName MySqlInstanceAgentRunnerHost.exe -ApplicationNameUri $($info.FabricApplicationUri)"; Description = "Kill instance agent" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | Kill-Process -ProcessName MDSAgentLauncherHost.exe -ApplicationNameUri $($info.FabricApplicationUri)"; Description = "Kill MDS agent" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | Kill-Process -ProcessName SqlSatelliteRunnerHost.exe -ApplicationNameUri $($info.FabricApplicationUri)"; Description = "Kill SAT runner" },
+        @{ Command = "Restart-ElasticServer -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType)"; Description = "Restart server" },
+        @{ Command = "New-ElasticServerFirewallRule -StartIpAddress `"0.0.0.0`" -EndIpAddress `"0.0.0.0`" -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType)"; Description = "Add Firewall Rule" },
+        @{ Command = "Remove-ElasticServerFirewallRule -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType)"; Description = "Remove Firewall Rule" },
+        @{ Command = "Get-ElasticServerConfig -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -ConfigName input_config_name"; Description = "Get Configuration" },
+        @{ Command = "Set-ElasticServerConfig -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -ConfigName input_config_name -ConfigValue input_config_value -ConfigType UserConfiguration"; Description = "Set Configuration" },
+        @{ Command = "Get-ElasticServerSasToken -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -Minutes 30 -Backup `$false -Permissions rl -StorageType FileShare"; Description = "Get SAS key" },
+        @{ Command = "Get-CreateElasticServerBackup -ServerName $($info.ServerName) -SubscriptionId $($info.SubscriptionId) -ServerType $($info.ServerType) -ResourceGroup $($info.ResourceGroup)"; Description = "PG Basic Backup" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | Invoke-ElasticServerBackupServiceAction -ActionType ForceBackup -InstanceName $($info.PhysicalInstanceName) -BackupType Full -ElasticServerId $($info.ElasticServerId)"; Description = "Take backup" },
+        @{ Command = "Restore-ElasticServer2 -SubscriptionId $($info.SubscriptionId) -SourceResourceGroup $($info.ResourceGroup) -SourceServerName $($info.ServerName) -ServerType $($info.ServerType) -TargetResourceGroup $($info.ResourceGroup) -TargetServerName `"input_new_restored_name`""; Description = "Restore server" },
+        @{ Command = "New-ElasticServerReplica2 -SubscriptionId $($info.SubscriptionId) -PrimayResourceGroup $($info.ResourceGroup) -PrimaryServerName $($info.ServerName) -ServerName `"input_new_replica_name`" -ServerType $($info.ServerType)"; Description = "Create read replica" },
+        @{ Command = "Write-Warning `"The following commands are for MySQL only.`""; Description = "Start of MySQL Only" },
+        @{ Command = "Invoke-ElasticServerDbCommand -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -command `"input_MySQL_command`""; Description = "Invoke Command" },
+        @{ Command = "Invoke-ElasticServerDbCommand -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -command `"show_binary_logs`""; Description = "Show binary logs" },
+        @{ Command = "Invoke-ElasticServerDbCommand -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -command `"show_master_status`""; Description = "Show master status" },
+        @{ Command = "Invoke-ElasticServerDbCommand -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -command `"show_slave_status`""; Description = "Show slave status" },
+        @{ Command = "Invoke-ElasticServerDbCommand -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -command `"show_plugins`""; Description = "Show plugins" },
+        @{ Command = "Invoke-ElasticServerDbCommand -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -command `"start_slave`""; Description = "Start Slave" },
+        @{ Command = "Invoke-ElasticServerDbCommand -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -command `"stop_slave`""; Description = "Stop Slave" },
+        @{ Command = "Invoke-ElasticServerDbCommand -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -command `"show_processlist`""; Description = "Show processlist" },
+        @{ Command = "Set-ElasticServerConfig -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -ConfigName log_bin -ConfigValue ON -ConfigType UserConfiguration"; Description = "Turn on bin log" },
+        @{ Command = "Set-ElasticServerConfig -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -ConfigName audit_log_enabled -ConfigValue ON -ConfigType UserConfiguration"; Description = "Turn on audit log" },
+        @{ Command = "Set-ElasticServerConfig -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -ConfigName audit_log_events -ConfigValue `"GENERAL,CONNECTION`" -ConfigType UserConfiguration"; Description = "Set audit events" },
+        @{ Command = "Set-ElasticServerConfig -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -ConfigName audit_log_exclude_users -ConfigValue azure_superuser -ConfigType UserConfiguration"; Description = "Set audit excl user" },
+        @{ Command = "Set-ElasticServerConfig -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType) -ConfigName slave_parallel_workers -ConfigValue 0 -ConfigType UserConfiguration"; Description = "Turn off parallel replication" },
+        @{ Command = "Write-Output `"The commands above are for MySQL only.`""; Description = "End of MySQL Only" },
+        @{ Command = "Write-Warning `"Please consult team orcasql@service.microsoft.com before using the commands below`""; Description = "WARNING!" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | Remove-Replica -AppName $($info.PhysicalInstanceName) -PartitionId $($info.FabricPartitionId)"; Description = "Remove replica" },
+        @{ Command = "Get-FabricNode -NodeName $($info.FabricNodeName) -NodeClusterName $($info.TenantRingName) | Move-Replica -ApplicationUri $($info.FabricApplicationUri) -ServiceUri $($info.FabricApplicationUri)/$($info.ServerType)/$($info.PhysicalInstanceName)"; Description = "Move Replica" },
+        @{ Command = "# Warning: This operation may cause data loss, please proceed with caution"; Description = "Delete database files" },
+        @{ Command = "=============================================================================================================================================="; Description = "" },
+        @{ Command = "Remove-ElasticServer -SubscriptionId $($info.SubscriptionId) -ResourceGroup $($info.ResourceGroup) -ServerName $($info.ServerName) -ServerType $($info.ServerType)"; Description = "Remove elastic server" },
+        @{ Command = "Raise-SqlAzureFsmEvent -TableName `"tbl_elastic_servers`" -Keys @('$($info.ElasticServerId)') -EventName UpdatePremiumFileShareQuota -EventParameters @(`"<SizeInMB>`") -CabId <Cab ID>"; Description = "Increase PFS storage" },
+        @{ Command = "Set-WinfabProperty -FabricClusterName $($info.TenantRingName) -FabricNameUri $($info.FabricApplicationUri) -PropertyName StartPause -PropertyValue ([System.Text.Encoding]::Unicode.GetBytes(`"BeforeLaunch`"))"; Description = "Pause" },
+        @{ Command = "Remove-WinfabProperty -FabricClusterName $($info.TenantRingName) -FabricNameUri $($info.FabricApplicationUri) -PropertyName StartPause"; Description = "Unpause" },
+        @{ Command = "Set-ApplicationDeploymentPinningFlag -FabricApplicationUri $($info.FabricApplicationUri) -Action Pin -Justification `"<JUSTIFICATION>`""; Description = "Pin" },
+        @{ Command = "Set-ApplicationDeploymentPinningFlag -FabricApplicationUri $($info.FabricApplicationUri) -Action UnPin"; Description = "UnPin" }
+    )
+
+    # 输出命令及其功能
+    foreach ($cmd in $commands) {
+        Write-Output "$($cmd.Description)`t$($cmd.Command)"
+    }
+}
+
+
+function Get-AllRegionJitAccess
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$IcM = "208144943",
+
+        [Parameter(Mandatory=$true)]
+        [string]$Reason = "jit to open featureswitch"
+    )
+
+    New-JITRequest -env product -src IcM -wid $IcM -Justification "${Reason}" -rtype DstsCtrls -stype SqlAzureCas -ins asiasoutheast.sterling,asiaeast.sterling,australiac.sterling,australiac2.sterling,australiaeast.sterling,australiasoutheast.sterling,brazilse.sterling,brazilsouth.sterling,canadacentral.sterling,canadaeast.sterling,dm3.sterling,egclusters,europenorth.sterling,europewest.sterling,francec.sterling,frances.sterling,germanyn.sterling,germanywc.sterling,indiacentral.sterling,indiasouth.sterling,indiawest.sterling,japaneast.sterling,japanwest.sterling,koreacentral.sterling,koreasouth.sterling,norwaye.sterling,norwayw.sterling,southafrican.sterling,southafricaw.sterling,stageclusters,switzerlandn.sterling,switzerlandw.sterling,uaec.sterling,uaen.sterling,uksouth.sterling,ukwest.sterling,uscentral.sterling,uscentraleuap.sterling,useast.sterling,useast2.sterling,useast2euap.sterling,usnorth.sterling,ussouth.sterling,uswest.sterling,uswest2.sterling,uswest3.sterling,uswestcentral.sterling -AccessLevel PlatformServiceAdministrator -ver 2015-09-07.1.0
+}
+
+
+<#
+.SYNOPSIS
+Outputs a list of regions for Meru JIT SQL Azure CAS submission.
+
+.DESCRIPTION
+The Output-Regions function prints a list of regions that are required when submitting a Meru JIT SQL Azure CAS request. Each region is listed with an index for easy reference.
+
+.EXAMPLE
+PS C:\> Output-Regions
+
+This example calls the function to print the list of regions to the console.
+
+.NOTES
+This function is useful for quickly referencing the list of regions needed for Meru JIT SQL Azure CAS submissions.
+#>
+function YOJ-MERUJITSQLAzureCASRegions
+{
+    $regions = @(
+        "asiaeast.sterling",
+        "asiasoutheast.sterling",
+        "australiac.sterling",
+        "australiac2.sterling",
+        "australiaeast.sterling",
+        "australiaeast1-z.sterling",
+        "australiasoutheast.sterling",
+        "brazilse.sterling",
+        "brazilsouth.sterling",
+        "canadacentral.sterling",
+        "canadaeast.sterling",
+        "chilec.sterling",
+        "dm3.sterling",
+        "eastus1-z.sterling",
+        "eastus2-z.sterling",
+        "egclusters",
+        "europenorth.sterling",
+        "europewest.sterling",
+        "eusslv.sterling",
+        "francec.sterling",
+        "frances.sterling",
+        "germanyn.sterling",
+        "germanywc.sterling",
+        "indiacentral.sterling",
+        "indiasouth.sterling",
+        "indiawest.sterling",
+        "indonesiac.sterling",
+        "israelc.sterling",
+        "italyn.sterling",
+        "japaneast.sterling",
+        "japanwest.sterling",
+        "jioinc.sterling",
+        "jioinw.sterling",
+        "koreacentral.sterling",
+        "koreasouth.sterling",
+        "malaysias.sterling",
+        "malaysiaw.sterling",
+        "mexicoc.sterling",
+        "newzealandn.sterling",
+        "northeurope1-z.sterling",
+        "norwaye.sterling",
+        "norwayw.sterling",
+        "polandc.sterling",
+        "qatarc.sterling",
+        "southafrican.sterling",
+        "southafricaw.sterling",
+        "southeastasia1-z.sterling",
+        "spainc.sterling",
+        "stageclusters",
+        "swedenc.sterling",
+        "swedens.sterling",
+        "switzerlandn.sterling",
+        "switzerlandw.sterling",
+        "taiwann.sterling",
+        "taiwannw.sterling",
+        "uaec.sterling",
+        "uaen.sterling",
+        "uksouth.sterling",
+        "uksouth1-z.sterling",
+        "ukwest.sterling",
+        "uscentral.sterling",
+        "uscentraleuap.sterling",
+        "useast.sterling",
+        "useast2.sterling",
+        "useast2euap.sterling",
+        "useuapcentral1-z.sterling",
+        "useuapeast2-z.sterling",
+        "useuapeast2-z.sterling.sterling",
+        "usnorth.sterling",
+        "ussouth.sterling",
+        "ussoutheast.sterling",
+        "uswest.sterling",
+        "uswest2.sterling",
+        "uswest3.sterling",
+        "uswestcentral.sterling"
+    )
+
+    for ($i = 0; $i -lt $regions.Length; $i++) {
+        Write-Output "$($i + 1). $($regions[$i])"
+    }
+}
+
+<#
+.SYNOPSIS
+   Changes the timeout for MySQL Import operation.
+
+.DESCRIPTION
+   The Set-MySqlImportTimeout function changes the timeout for MySQL Import operation to 24 hours. This is necessary as previous changes have set the timeout to 2 hours.
+
+.PARAMETER csvFilePath
+   Path to the CSV file containing the SubscriptionId, CustomerName, and Region.
+
+.EXAMPLE
+   Set-MySqlImportTimeout -csvFilePath "path\to\your\file.csv"
+#>
+function YOJ-MySqlImportTimeout {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$csvFilePath
+    )
+
+    # Import the CSV file
+    $csv = Import-Csv -Path $csvFilePath -Header "SubscriptionId", "CustomerName", "Region"
+
+    # Loop through each row in the CSV
+    foreach ($row in $csv) {
+        # Generate and execute the commands for each row
+        Write-Host "Set 24 hour for SubscriptionId"
+        Write-Host $row.SubscriptionId
+        Select-SqlAzureCluster $row.Region
+        Set-MySqlResourceProviderConfiguration -ConfigName UpsertServerManagementOperationTimeout -ConfigValue "24:00:00" -SubscriptionId $row.SubscriptionId -ConfigDescription "Set 24 hour for $($row.CustomerName)" -ServerType MySQL
+    }
+}
+
+function YOJ-DBXServerInfo {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$serverName
+    )
+
+    # 获取服务器信息
+    $info = Get-ElasticServerInstance2 -ServerName $serverName
+
+    # 获取配置
+    $logBinCfg = $info | Get-ElasticServerConfig -ConfigName "log_bin"
+    $gtidModCfg = $info | Get-ElasticServerConfig -ConfigName "gtid_mode"
+    $binlogGtidSimpleIgnoreCfg = $info | Get-ElasticServerConfig -ConfigName "binlog_gtid_simple_ignore"
+
+    # 获取全局变量
+    $globalVarsJson = $info | Invoke-ElasticServerDbCommand -command "show_global_variables"
+
+    # 解析全局变量
+    $globalVars = ConvertFrom-Json -InputObject $globalVarsJson
+
+    # 查找 "log_bin" 变量
+    $logBinVar = $globalVars.result | Where-Object { $_.Variable_name -eq "log_bin" }
+
+    # 创建一个自定义对象并以表格的形式输出
+    $output = New-Object -TypeName PSObject
+    $output | Add-Member -MemberType NoteProperty -Name "ServerName" -Value $serverName
+    $output | Add-Member -MemberType NoteProperty -Name "log_bin_cfg" -Value $logBinCfg
+    $output | Add-Member -MemberType NoteProperty -Name "gtid_mod_cfg" -Value $gtidModCfg
+    $output | Add-Member -MemberType NoteProperty -Name "binlog_gtid_simple_ignore_cfg" -Value $binlogGtidSimpleIgnoreCfg
+    $output | Add-Member -MemberType NoteProperty -Name "log_bin" -Value $logBinVar.Value
+
+    $output | Format-Table -AutoSize
+}
+
+# Step 0. Check variable of binlog_gtid_simple_ignores
+function YOJ-CheckDBXServerConfig {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$serverNames
+    )
+
+    foreach ($serverName in $serverNames) {
+        # 获取服务器信息
+        $info = Get-ElasticServerInstance2 -ServerName $serverName
+
+        # 获取配置
+        $configOutput = $info | Get-ElasticServerConfig -ConfigName "binlog_gtid_simple_ignore"
+
+        # 解析配置值
+        $configValue = ($configOutput -split '=')[1].Trim()
+
+        # 检查配置是否为 "OFF"
+        if ($configValue -eq "ON") {
+            # 输出服务器名称和 "NEED_CHANGE"
+            Write-Host $serverName "NeedChange"
+        } else {
+            Write-Host $serverName "SKIP"
+        }
+    }
+}
+
+# Step 1. change variable of binlog_gtid_simple_ignores & flush_binary_logs
+function YOJ-ChangeDBXServerConfig {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$serverNames
+    )
+
+    foreach ($serverName in $serverNames) {
+        # 获取服务器信息
+        $info = Get-ElasticServerInstance2 -ServerName $serverName
+
+        # 获取配置
+        $configOutput = $info | Get-ElasticServerConfig -ConfigName "binlog_gtid_simple_ignore"
+
+        # 解析配置值
+        $configValue = ($configOutput -split '=')[1].Trim()
+
+        # 检查配置是否为 "OFF"
+        if ($configValue -eq "ON") {
+            # 输出服务器名称和 "NEED_CHANGE"
+            Write-Host $serverName "Change"
+            $info | Set-ElasticServerConfig -ConfigName binlog_gtid_simple_ignore -ConfigValue OFF -ConfigType UserConfiguration
+            $info | Get-ElasticServerConfig -ConfigName "binlog_gtid_simple_ignore"
+            $info | Invoke-ElasticServerDbCommand -command "flush_binary_logs"
+        } else {
+            Write-Host $serverName "SKIP"
+        }
+    }
+}
+
+# Step 2. Gernerate take backup command
+function YOJ-BackupDBXServerCommand {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$serverNames
+    )
+
+    foreach ($serverName in $serverNames) {
+        # 获取服务器信息
+        YOJ-SingleServerCommands -ServerName $serverName | findstr "Take backup"
+    }
+}
+
+<#
+.SYNOPSIS
+Processes a CSV file to manage MySQL migration schedules.
+
+It's generated by the SQL query
+
+SELECT o.subscription_id,
+       o.server_name,
+       o.resource_group,
+       o.region,
+       o.storage_type
+FROM orig_cms_sql_all_single_servers_08_12 AS o
+JOIN sub_cx_name_map AS s
+ON o.subscription_id = s.sub_id
+WHERE s.cx_name = 'Walmart' and o.storage_type='SBS';
+
+.DESCRIPTION
+The Process-CsvFile function reads a CSV file containing server information and processes each row to manage MySQL migration schedules. It checks if an elastic_server_id exists and if a schedule exists for that server. If either does not exist, it creates a new migration server and schedule, then cancels the current schedule. It also logs the operations to a file and prints them to the console.
+
+.PARAMETER CsvFilePath
+The path to the CSV file containing server information.
+
+.PARAMETER LogFilePath
+The path to the log file where operations will be recorded.
+
+.EXAMPLE
+PS C:\> Process-CsvFile -CsvFilePath "C:\path\to\servers.csv" -LogFilePath "C:\path\to\log.txt"
+
+This example processes the CSV file located at "C:\path\to\servers.csv" to manage MySQL migration schedules and logs the operations to "C:\path\to\log.txt".
+
+.NOTES
+This function relies on the Query-MySqlControlStore, New-MySqlMigrationServer, New-MySqlMigrationSchedule, and Cancel-MySqlMigrationCurrentSchedule functions to perform its operations.
+#>
+function YOJ-SetAndCancelScheduleForSBS {
+    param (
+        [string]$CsvFilePath,
+        [string]$LogFilePath
+    )
+
+    # 初始化日志文件
+    if (Test-Path $LogFilePath) {
+        Clear-Content $LogFilePath
+    }
+
+    # 读取CSV文件
+    $csvData = Import-Csv -Path $CsvFilePath -Header "subscription_id", "server_name", "resource_group", "region", "storage_type"
+
+    foreach ($row in $csvData) {
+        $subscription_id = $row.subscription_id
+        $server_name = $row.server_name
+        $resource_group = $row.resource_group
+        $region = $row.region
+
+
+        if ($subscription_id -eq "subscription_id") {
+            continue
+        }
+
+        # 根据区域选择不同的环境
+        switch ($region) {
+            'wasd-prod-usgovsouthcentral1-a' { Select-SqlAzureEnvironment ffProd }
+            'wasd-prod-usgovsouthwest1-a' { Select-SqlAzureEnvironment ffProd }
+            'wasd-prod-usgoveast1-a' { Select-SqlAzureEnvironment ffProd }
+            'wasd-prod-chinaeast2-a' { Select-SqlAzureEnvironment mcProd }
+            'wasd-prod-chinanorth2-a' { Select-SqlAzureEnvironment mcProd }
+            default { Select-SqlAzureEnvironment Prod }
+        }
+
+        Select-SqlAzureCluster $region
+
+        $need_schedule = $false
+
+        # 检查是否存在elastic_server_id
+        $res = Query-MySqlControlStore "Select elastic_server_id from entity_migration_servers where elastic_server_name = '$server_name'"
+
+        if ($res) {
+            # 检查是否存在schedule
+            $schedule = Query-MySqlControlStore "Select state from entity_migration_schedules where elastic_server_id = '$($res.elastic_server_id)'"
+
+            if (-not $schedule) {
+                $need_schedule = $true
+                Add-Content -Path $LogFilePath -Value "$subscription_id  $server_name  $resource_group  $region [ADD]"
+                Write-Output "$subscription_id  $server_name  $resource_group  $region [ADD]"
+            } else {
+                Add-Content -Path $LogFilePath -Value "$subscription_id  $server_name  $resource_group  $region [SKIP]"
+                Write-Output "$subscription_id  $server_name  $resource_group  $region [SKIP]"
+            }
+        } else {
+            $need_schedule = $true
+            Add-Content -Path $LogFilePath -Value "$subscription_id  $server_name  $resource_group  $region [ADD]"
+            Write-Output "$subscription_id  $server_name  $resource_group  $region [ADD]"
+        }
+
+        if ($need_schedule) {
+            # 创建新的迁移服务器和计划
+            New-MySqlMigrationServer -CustomerSubscriptionId $subscription_id -CustomerResourceGroup $resource_group -ElasticServerName $server_name
+            Add-Content -Path $LogFilePath -Value "    $subscription_id  $server_name  $resource_group  $region [ADD_server_done]"
+            Write-Output "    $subscription_id  $server_name  $resource_group  $region [ADD_server_done]"
+
+            New-MySqlMigrationSchedule -CustomerSubscriptionId $subscription_id -CustomerResourceGroup $resource_group -ElasticServerName $server_name -ScheduledMigrationStartTime "2025-08-24T06:37:38.9326924" -ScheduledMigrationEndTime "2025-08-27T09:37:38.9326924" -MigrationMode Online -HaMode DISALBED
+            Add-Content -Path $LogFilePath -Value "    $subscription_id  $server_name  $resource_group  $region [ADD_schedule_done]"
+            Write-Output "    $subscription_id  $server_name  $resource_group  $region [ADD_schedule_done]"
+
+            # 重新检查elastic_server_id
+            $res = Query-MySqlControlStore "Select elastic_server_id from entity_migration_servers where elastic_server_name = '$server_name'"
+            Add-Content -Path $LogFilePath -Value "    $subscription_id  $server_name  $resource_group  $region [RECHECK_elastic_server_id_done]"
+            Write-Output "    $subscription_id  $server_name  $resource_group  $region [RECHECK_elastic_server_id_done]"
+
+            # 取消当前的迁移计划
+            Cancel-MySqlMigrationCurrentSchedule -ElasticServerId $res.elastic_server_id -CancelReason "cancel for mysql import by $server_name M32 test"
+            Add-Content -Path $LogFilePath -Value "    $subscription_id  $server_name  $resource_group  $region [CANCEL_schedule_done]"
+            Write-Output "    $subscription_id  $server_name  $resource_group  $region [CANCEL_schedule_done]"
+
+            Query-MySqlControlStore "Select state from entity_migration_schedules where elastic_server_id = '$($res.elastic_server_id)'"
+        }
     }
 }
 
@@ -1409,10 +1860,10 @@ Export-ModuleMember -Function YOJ-FlexServerPITRRealRun
 Export-ModuleMember -Function YOJ-FlexServerPITRDryRun
 Export-ModuleMember -Function YOJ-FlexServerSASToken
 Export-ModuleMember -Function YOJ-FlexServerJITPortal
-Export-ModuleMember -Function YOJ-SingleServerJITUrl
+Export-ModuleMember -Function YOJ-SingleServerJITUrl  # CMD1
 Export-ModuleMember -Function YOJ-FlexServerOpen22ForSSH
 Export-ModuleMember -Function YOJ-FlexVMJITUrl
-Export-ModuleMember -Function YOJ-GenerateDirectoryPathsAndCommand
+Export-ModuleMember -Function YOJ-GenerateDirectoryPathsAndCommand   # CMD2
 Export-ModuleMember -Function YOJ-GetJitMySqlConnectionStringSingleServer
 Export-ModuleMember -Function YOJ-SingleServerPITRDryRun
 Export-ModuleMember -Function YOJ-SetSingleParameter
@@ -1421,5 +1872,15 @@ Export-ModuleMember -Function YOJ-MERUSASToken
 Export-ModuleMember -Function YOJ-SingleServerSASToken
 Export-ModuleMember -Function YOJ-ComputeTableRows
 Export-ModuleMember -Function YOJ-MERUStorageResize
+Export-ModuleMember -Function YOJ-SingleServerCommands
+Export-ModuleMember -Function YOJ-MERUJITSQLAzureCASRegions
+Export-ModuleMember -Function YOJ-MySqlImportTimeout
+Export-ModuleMember -Function YOJ-DBXServerInfo
+Export-ModuleMember -Function YOJ-CheckDBXServerConfig
+Export-ModuleMember -Function YOJ-ChangeDBXServerConfig
+Export-ModuleMember -Function YOJ-BackupDBXServerCommand
+Export-ModuleMember -Function YOJ-SetAndCancelScheduleForSBS
 
-# Import-Module "C:\Users\yoj\code\Obsidian\MySQL-OnCall\yoj.psm1" -Force
+# Import-Module "C:\Users\yoj\Work Folders\Downloads\yoj.psm1" -Force
+# Import-Module "C:\DevOps\DevOps.Module.psm1"
+# Import-Module "C:\Users\yoj\Work Folders\Downloads\top100\MySqlFS.DevOps.AutoMigration.psm1" -Force
