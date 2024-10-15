@@ -1,0 +1,290 @@
+<!--ID=B7267351-473F-409D-9765-754A8EBCDE05;Version=1|{"VoiceNameToIdMapItems":[{"Id":"d6814675-a0c5-4e09-9387-bd9b44d3e733","Name":"Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoyouNeural)","ShortName":"zh-CN-XiaoyouNeural","Locale":"zh-CN","VoiceType":"StandardVoice"},{"Id":"39947851-46d7-4561-8199-2fd8bdc49ba6","Name":"Microsoft Server Speech Text to Speech Voice (zh-CN, YunjianNeural)","ShortName":"zh-CN-YunjianNeural","Locale":"zh-CN","VoiceType":"StandardVoice"},{"Id":"66dca810-157a-48a7-9a9c-cac3147734e8","Name":"Microsoft Server Speech Text to Speech Voice (zh-CN, YunxiaNeural)","ShortName":"zh-CN-YunxiaNeural","Locale":"zh-CN","VoiceType":"StandardVoice"}]}-->
+<!--ID=FCB40C2B-1F9F-4C26-B1A1-CF8E67BE07D1;Version=1|{"Files":{}}-->
+<!--ID=5B95B1CC-2C7B-494F-B746-CF22A0E779B7;Version=1|{"Locales":{"zh-CN":{"AutoApplyCustomLexiconFiles":[{}]}}}-->
+<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="zh-CN">
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural">同学们，今天我们要学习的是日历表中的年月日部分。首先，我们来了解一下“年”的定义及其确定方式。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural">年，我们通常指的是一个太阳回归年，大约是365.2422天。这个时间长度是根据地球绕太阳公转一周的时间来确定的。人们通常会根据季节的变化来确定一年，比如从一个春分到下一个春分。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural">接下来，我们要学习的是平年和闰年的判断方法。平年和闰年的区别主要在于二月份的天数。平年的二月有28天，而闰年的二月有29天。那么，如何判断一个年份是平年还是闰年呢？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural">首先，我们要看这个年份是不是100的倍数。如果一个年份的末尾是两个零，比如2000年，我们就去掉这两个零，取剩下的两位数，然后除以4。如果没有余数，那么这个年份就是闰年；如果有余数，那就是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural">如果一个年份的末尾不是两个零，比如2024年，我们就直接取最后两位数，也就是24，然后除以4。同样，如果没有余数，那么这个年份就是闰年；如果有余数，那就是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural">举个例子，2100年是一个末尾是两个零的年份，我们去掉两个零后，剩下的是21。21除以4有余数，所以2100年是平年。而2024年，我们取最后两位数24，24除以4没有余数，所以2024年是闰年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，我们刚才学习了如何判断一个年份是平年还是闰年。现在，我来问你们一个问题：如何判断一个年份是否是闰年？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。首先，我们要看这个年份是不是100的倍数。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果一个年份的末尾是两个零，比如2000年，我们就去掉这两个零，取剩下的两位数，然后除以4。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果没有余数，那么这个年份就是闰年；如果有余数，那就是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">那如果一个年份的末尾不是两个零呢？比如2024年，我们该怎么判断？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果一个年份的末尾不是两个零，比如2024年，我们就直接取最后两位数，也就是24，然后除以4。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">同样，如果没有余数，那么这个年份就是闰年；如果有余数，那就是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">举个例子，2100年是一个末尾是两个零的年份，我们该怎么判断它是平年还是闰年？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">对于2100年，我们去掉两个零后，剩下的是21。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">21除以4有余数，所以2100年是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">那2024年呢？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">对于2024年，我们取最后两位数24，24除以4没有余数，所以2024年是闰年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以准确地判断任何一个年份是平年还是闰年。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，我们刚才学习了如何判断一个年份是平年还是闰年。现在，我来问你们一个问题：如果一个年份是4的倍数，它一定是闰年吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">不一定是。如果一个年份是100的倍数，此时它一定是4的倍数。但它不一定是400的倍数，此时不是闰年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">比如2100年，是4的倍数，但不是400的倍数，所以2100年不是闰年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">那如果一个年份是4的倍数，但是它的2月只有28天，请问这是为什么？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果某一年的2月比3月少3天，那么2月就只有28天。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">也就是说这一年是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">虽然这一年是4的倍数，但是有一个例外，那就是整百年份。整百年份只有在400的倍数时才是闰年。例如，1700，1800都不是闰年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以准确地判断任何一个年份是平年还是闰年。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，我们刚才学习了如何判断一个年份是平年还是闰年。现在，我来问你们一个问题：闰年和平年的四个定义是什么？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">闰年：闰年首先要看一下是不是整百数。如果不是整百数，并且是4的倍数，那么就是闰年；</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果是整百数，那么就要看一下，是不是400的倍数。如果是400的倍数，那么就是闰年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">平年：如果不是整百数，并且不是4的倍数，那么就是平年；</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果是整百数，但不是400的倍数，那么就是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">那你是怎么计算闰年和平年的？分别判断以下年份是闰年还是平年？2100 ( )、100 ( )、1024 ( )、2024 ( )。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">首先取年份的最后两位:</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果最后两位是00，去掉这两个00，再取两位。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">比如，2100年：取00之后，发现是0，就应该取21，然后除以4，如果没有余数就是闰年，否则就是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果最后两位不是00，那么取了就直接除以4，除尽就是闰年，否则就是平年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">所以: 2100 (平年)、100 (平年)、1024 (闰年)、2024 (闰年)。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以准确地判断任何一个年份是平年还是闰年。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，接下来我们要学习的是关于月份的知识。首先，我们来了解一下月球绕地球一周的时间，也就是我们常说的一个月。一年有12个月。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">现在，我来问你们一个问题：大月有哪些，小月有哪些？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。大月有1、3、5、7、8、10、12月；小月有4、6、9、11月。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">那连续的两个大月有哪些？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">连续的两个大月有7月和8月；或者上一年的12月与当年的1月。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">小刚某月1日去奶奶家，住了62天，正好住满两个月，你知道小刚是哪两个月住在奶奶家吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">小刚是7月和8月；或者上一年的12月与当年的1月住在奶奶家。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">二月被叫做什么月？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">二月被叫做特殊月，2月既不是大月，也不是小月，2月是特殊月，平年是28天，闰年是29天。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">在年、月、日这三个时间单位中，按表示时间的长度从小到大排个序。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">按表示时间的长度从小到大排序是：日、月、年。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">8月有31天，与它相邻的两个月分别有多少天？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">8月有31天，与它相邻的两个月分别是7月和9月，7月有31天，9月有30天。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">有个月有30天，与它相邻的两个月必定是31天。请问对吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">对，有个月有30天，与它相邻的两个月必定是31天。这里需要采用枚举法。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">30天的月份称为小月。小月有4个月为小月。4、6、9、11月为小月。然后分析这些月份相邻月份的情况：以 4 月为例，4 月有 30 天，它相邻的 3 月有 31 天，5 月有 31 天。再以 6 月为例，6 月有 30 天，它相邻的 5 月有 31 天，7 月有 31 天。还有 9 月，9 月有 30 天，它相邻的 8 月有 31 天，10 月有 31 天。11 月有 30 天，它相邻的 10 月有 31 天，12 月有 31 天。所以说，这个说法是对的。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以更好地理解月份的相关知识。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，接下来我们要学习的是关于日的知识。首先，我们来了解一下地球自转的概念。地球自转一周的时间是24小时。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">现在，我来问你们一个问题：一周有多少小时？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。一周有7天，每天24小时，所以一周有7×24 = 168小时。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">接下来，我们要学习的是关于世纪的知识。首先，我来问你们一个问题：什么是一年世纪？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。100年为一个世纪。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">那给定年份如何求世纪？举例说明如何求2024属于哪个世纪。2100年属于哪个世纪。52年属于哪个世纪。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。去掉后面两个数，如果去掉的两个数如果大于0，那么剩下的数要加上1。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">比如我们看第一个例子：2024分成两半，20 +（24>0）取1 = 21世纪；</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">再看第二个例子：2100分成两半，21 + (00 == 0)取0 = 21世纪</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">再看第3个例子：52分成两半，前面是0，后面是52。(52>0)取1 = 0 + 1 = 1世纪。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以更好地理解日和世纪的相关知识。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，接下来我们要学习的是如何写出下面数字的附近的整百数和整千数。现在，我来问你们一个问题：如何写出下面数字的附近的整百数，整千数？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果一个数不是整百/整千:</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">第一步：如果是整百，那么就要把尾巴上的两个数字变成0。比如2409就需要变成2400。就可以得到小一点的整百数。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">第二步：加上1百，然后就可以得到大一点的整百数。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果一个数小于100，要记得取0。那么小一点的整百数，就取0。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">如果本来就是整百数，那么需要加和减整1百。比如900附近的整百数，就是900 - 100 = 800，900 + 100 = 1000。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以更好地理解如何写出数字的附近的整百数和整千数。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，接下来我们要学习的是如何求星期几的三种类型。首先，我们来学习同月型的问题。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">现在，我来问你们一个问题：如果2024年4月8日是星期三，请问2024年4月25日是星期几？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">25 - 8 = 17</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">17÷7 = 2......3</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">3 + 3 = 6</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">所以是星期六。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">接下来，我们来学习跳月型的问题。现在，我来问你们一个问题：如果2024年4月8日是星期三，请问2024年9月25日是星期几？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。解法是罗列天数，并立即求余数。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">4月余下: (4月8日 ~ 4月30日]，也就是30 - 8 等于22。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">4月：22天 -> 余1；</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">5月：31天 -> 余3；</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">6月：30天 -> 余2；</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">7月：31天 -> 余3；</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">8月：31天 -> 余3；</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">9月：25天 -> 余4。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">共 : -> 余16</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">16÷7 = 2......2 最后余2。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">3 (表示星期3) + 2 = 5</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">所以是星期5。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">现在，我来问你们一个问题：2021年10月1日是星期五，这一年的12月31日是星期几？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">10月余：31 - 1 = 30 -> 余2</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">11月: 30， -> 余2</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">12月：31， -> 余3</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">一共: -> 余5</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">5(星期5) + 5 = 10</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">10÷7 = 1......3</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">所以是星期3。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以更好地理解如何求星期几的三种类型。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，接下来我们要学习的是跳年型的问题。现在，我来问你们一个问题：2019年10月15日是星期四，2024年2月1日是星期几？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。解法是罗列天数，并立即求余数。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">10月余下: 16天 -> 余2</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">11月：30天 -> 余2</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">12月：31天 -> 余3</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">2020年：366 -> 余2</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">21年：365 -> 余1</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">22年：365 -> 余1</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">23年：365 -> 余1</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">24年1月：31天 -> 余3</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">24年2月：1天 ->余1</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">一共: -> 余16</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">16 ÷ 7 = 2 ...... 2</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">4 (星期4) + 2 = 星期6</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以更好地理解跳年型的问题。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，接下来我们要学习的是闰年天数除以7余数是多少？平年天数除以7，余数是多少？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。闰年天数除7余2，平年天数除7余1。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">现在，我来问你们一个问题：求星期几的问题与周期问题有什么相似的地方呢？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">相同点：他们都要求余数。得到余数之后还需要找到相应的位置。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">不同点：星期问题的周期是固定的，一直是7。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">周期问题的周期可能会随时变化。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">星期问题得到余数后，还需要进行加法操作才能得到星期几。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">现在，我来问你们一个问题：星期问题与植树问题有什么相似的地方呢？对应了植树问题的第几种呢？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">好的，我来回答这个问题。星期问题，一般已经说了开始的那一天是星期几，因此在记录的时候，应该写成(4月8日，4月25日]。</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunfengNeural">同学们，通过这种方式，我们可以更好地理解星期几的问题与周期问题以及植树问题的相似之处。你们都明白了吗？</voice>
+<voice name="zh-CN-XiaoyouNeural"></voice>
+<voice name="zh-CN-YunxiaNeural">是的，我们都明白了。谢谢老师的讲解！</voice>
+</speak>
