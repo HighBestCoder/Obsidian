@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd "/Users/youji/Downloads/新白娘子传奇中文SRT字幕"
+cat "新白娘子传奇${1}.chs.srt" |  grep -v '^[[:space:]]*$' | grep -v "[0-9]"

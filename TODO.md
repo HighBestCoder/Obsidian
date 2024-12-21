@@ -68,6 +68,21 @@
 	    - 数学与生活
 	    - 数学的故事
 	    - 初中数学定理多证定义多解
+	    - 0.高等数学优秀教材推荐（置于文末）  
+1.初等数学之旅  
+2.中学数学实验教材  
+3.[数学题解辞典](https://zhida.zhihu.com/search?content_id=654090438&content_type=Answer&match_order=1&q=%E6%95%B0%E5%AD%A6%E9%A2%98%E8%A7%A3%E8%BE%9E%E5%85%B8&zhida_source=entity)  
+4.[数理化自学丛书](https://zhida.zhihu.com/search?content_id=654090438&content_type=Answer&match_order=1&q=%E6%95%B0%E7%90%86%E5%8C%96%E8%87%AA%E5%AD%A6%E4%B8%9B%E4%B9%A6&zhida_source=entity)-数学  
+5.[中学数学基础知识丛书](https://zhida.zhihu.com/search?content_id=654090438&content_type=Answer&match_order=1&q=%E4%B8%AD%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E4%B8%9B%E4%B9%A6&zhida_source=entity)  
+6.数学甲种本  
+7.北京四中高中数学讲义  
+8.[数学奥林匹克小丛书](https://zhida.zhihu.com/search?content_id=654090438&content_type=Answer&match_order=1&q=%E6%95%B0%E5%AD%A6%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E5%B0%8F%E4%B8%9B%E4%B9%A6&zhida_source=entity)  
+9.奥数教程（小蓝本）  
+10.[仁华学校奥林匹克数学课本](https://zhida.zhihu.com/search?content_id=654090438&content_type=Answer&match_order=1&q=%E4%BB%81%E5%8D%8E%E5%AD%A6%E6%A0%A1%E5%A5%A5%E6%9E%97%E5%8C%B9%E5%85%8B%E6%95%B0%E5%AD%A6%E8%AF%BE%E6%9C%AC&zhida_source=entity)  
+11.数学奥林匹克不等式证明方法和技巧  
+12.奥林匹克数学专题研究系列丛书
+
+
 1. 语文语料丛书
 	1. [TODO] 最佳景色描写辞典
 	2. [TODO] 文学描写辞典
