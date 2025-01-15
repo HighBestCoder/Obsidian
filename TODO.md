@@ -97,3 +97,41 @@
 3. 写一个安装mysql debug环境的脚本
 	1. kernel-tools 安装了就有perf命令。
 4. 有一波机器的sub需要unpin
+
+
+
+作者：George  
+链接：https://www.zhihu.com/question/21376384/answer/50289239106  
+来源：知乎  
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。  
+  
+
+学数据库 [leveldb](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=leveldb&zhida_source=entity) 这一个库告诉你数据库的存储怎么做的，怎么设计磁盘结构，以及缓存结构，性能现在来看可能有点过时了，不过感兴趣自然会去研究[rocksdb](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=rocksdb&zhida_source=entity) 的
+
+学网络编程以直接[libev](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=libev&zhida_source=entity) 虽然是c的，但是很容易上手，代码质量一般，但是有些骚的可以学习。
+
+学习协议处理，直接看[kcp](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=kcp&zhida_source=entity) 相关的代码，还有
+
+[@pengjianzhang](//www.zhihu.com/people/9cf91390290693e99f91225ea5bf5b9f)
+
+老师的dperf 虽然彭老师老在知乎夹带私货，但是代码真的写的牛逼非常值得学习，还有ixy 这一套网络驱动的东西
+
+学习异步编程，直接[asio](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=asio&zhida_source=entity) ，这玩意上来很绕，但是请先耐心看完p2444r0，你会发现这是世界上能找到的最牛逼的通用[异步框架](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=%E5%BC%82%E6%AD%A5%E6%A1%86%E6%9E%B6&zhida_source=entity)以及网络框架，虽然我的引擎里面没有用，更进一步就跟c++26的Sender/Receiver了，libfinex质量一般，不过[executor](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=executor&zhida_source=entity)和execution分离的模式真的很值得学习
+
+学习数值计算，[Eigen](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=Eigen&zhida_source=entity) ，然后搭配清华那本线性代数教材，足够了
+
+学习数据库的查询引擎或者计算心情，直接看Apache arrow以及里面的Gandiva jit
+
+模板[黑科技](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=%E9%BB%91%E7%A7%91%E6%8A%80&zhida_source=entity)，微软的proxy非常值得学习
+
+日志库，nanolog 和 spdlog 都不错，但是nanolog 还有性能提升空间
+
+[Actor](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=Actor&zhida_source=entity)模式和thread per core思想，直接看[seastar](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=seastar&zhida_source=entity) 质量极高，但是dpdk部分还有很多bug
+
+Json parser还是推荐[simdjson](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=simdjson&zhida_source=entity) 这个质量很好，虽然接口有点烂
+
+各种lock free结构，看xenium，作者最新的stamp it这个东西还有[slab](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=slab&zhida_source=entity) 的思想可以帮助你优化nanolog
+
+然后编译期编译，无脑[fmtlib](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=fmtlib&zhida_source=entity) 非常舒服
+
+以上这些库，基本源码都看了一遍了，并且把其中的核心的灵魂都用在自己的交易引擎中了，借鉴了seastar 的[actor模式](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=actor%E6%A8%A1%E5%BC%8F&zhida_source=entity)，然后借鉴了kcp的协议IO分离dperf 和 ixy 的网络驱动设计以及[kernel bypass](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=kernel+bypass&zhida_source=entity)，asio 的异步组合模式，libfinex的并行计算思路，[eigen](https://zhida.zhihu.com/search?content_id=703173276&content_type=Answer&match_order=1&q=eigen&zhida_source=entity) 直接用起来做计算，然后还有一些是leveldb 中的事务实现，用来实现策略状态暴露，当然是无锁的，xenium的无锁垃圾回收机制，还有基于simdjson 改造的流式协议处理，当然还有很的优化黑科技，就不一一说了。
