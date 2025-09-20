@@ -56,6 +56,22 @@ brew uninstall protobuf
 
 
 
+需要修改一下系统目录
+
+```
+#!/bin/bash
+
+# 指定 opencv 目录
+
+# 遍历 opencv 目录下的所有文件
+find "." -type f -print0 | while IFS= read -r -d '' file; do
+    # 替换文件中的文本
+    sed -i '' 's/MacOSX.sdk/MacOSX.sdk/g' "$file"
+    echo "Updated: $file"
+done
+```
+
+
 ```
 # Package Information for pkg-config
 
@@ -72,5 +88,25 @@ Libs: -L${exec_prefix}/lib -lopencv_world -L${exec_prefix}/share/OpenCV/3rdparty
 Cflags: -I${includedir_old} -I${includedir_new}
 ```
 
-# OpenCV 4.9的处理
+# OpenCV 4.10.0的处理
 
+```
+#!/bin/bash
+
+arch -arm64 cmake .. \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DBUILD_opencv_world=ON \
+    -DWITH_QT=OFF \
+    -DWITH_OPENGL=OFF \
+    -DFORCE_VTK=OFF \
+    -DWITH_TBB=OFF \
+    -DWITH_GDAL=OFF \
+    -DWITH_XINE=OFF \
+    -DBUILD_EXAMPLES=OFF \
+    -DBUILD_ZLIB=OFF \
+    -DBUILD_TESTS=OFF \
+    -D WITH_JPEG=ON \
+    -D JPEG_INCLUDE_DIR=$(brew --prefix jpeg)/include \
+    -D JPEG_LIBRARY=$(brew --prefix jpeg)/lib/libjpeg.a \
+    -DCMAKE_INSTALL_PREFIX=/Users/youji/Documents/code/rm-300a/src/lib/opencv
+```
