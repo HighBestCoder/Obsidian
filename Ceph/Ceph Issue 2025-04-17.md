@@ -260,3 +260,27 @@ BlueFS作为一个非常简易的文件系统，首先我们可以看一下super
 ```C++
 
 ```
+
+# 找到正确的结构
+
+print_info这个branch跑一下。然后可以得到最大的offset的日志
+
+第一步：
+
+2025-10-22 07:32:33 3953 INFO: 140365088286016 [OP_JUMP] disk_offset: 11999297404928 找到jump_seq = 1722305527, offset = 196608 at _replay_find_log(/home/src/os/bluestore/BlueFS.cc:1210)
+
+
+那么这个时候，可以确定第一个extent
+
+```
+        {
+          "offset": 11999297404928,
+          "length": 196608,
+          "bdev": 1
+        },
+```
+
+第二步：
+
+需要在fix_search的日志里面找到`jump_seq = 1722305527`所在的磁盘的offset
+
